@@ -8,7 +8,7 @@
 
 **Processing**
  - `LIA.py` (Main script: download data and run analysis)
- - `pre_post.py (pre/post comparison asset area vs surrounding)
+ - `pre_post.py` (pre/post comparison asset area vs surrounding)
  - ...
 
 **Output**
