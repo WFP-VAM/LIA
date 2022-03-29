@@ -7,9 +7,11 @@
  - *DataFrames* (asset_info.csv and country_info.csv)
 
 **Processing**
- - `LIA.py` (Main script: download data and run analysis)
- - `pre_post.py` (pre/post comparison asset area vs surrounding)
- - ...
+ - `LIA.py` (main script: download data and run analysis)
+ - `helpers_fns.py` (helper script with functions for the main script)
+ - Analysis scripts:
+      - `pre_post.py` (pre/post comparison asset area vs surrounding)
+      - ...
 
 **Output**
  - *NDVI_prepost* (NDVI pre/post comparison asset area vs surrounding rasters)
