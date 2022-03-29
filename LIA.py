@@ -1,8 +1,7 @@
 from helper_fns import *
 import pre_post
 
-if __name__ == '__main__':
-
+def main():
 
 	# Set paths
 	path_to_shapefile = 'data/Shapefiles/'
@@ -43,6 +42,11 @@ if __name__ == '__main__':
 	# PROCESSING
 
 	pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'NDVI')
+
+
+if __name__ == '__main__':
+
+	main()
 
 
 
