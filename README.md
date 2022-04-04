@@ -14,4 +14,4 @@
       - ...
 
 **Output**
- - *NDVI_prepost* (NDVI pre/post comparison asset area vs surrounding rasters)
+ - *prepost* (pre/post comparison asset area vs surrounding rasters)
