@@ -1,4 +1,5 @@
-CHIRPS,
+CHIRPS,s3://wfp-share/LIA/SYR/syrrfh_monthly.zarr/
+CHIRPS LTA,s3://wfp-share/LIA/SYR/syrrfh_monthly_avg.zarr/
 NDVI,s3://wfp-share/LIA/SYR/syrvim_monthly.zarr/
 NDVI LTA,s3://wfp-share/LIA/SYR/syrvim_monthly_avg.zarr/
 LST,s3://wfp-share/LIA/SYR/syrtda_monthly.zarr/
