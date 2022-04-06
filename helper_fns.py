@@ -69,23 +69,11 @@ def get_wet_dry(c_info: pd.DataFrame):
     '''  
     
     # Get start and end of wet season(s)
-    w = [(c_info['season1_start'], c_info['season1_end']), (c_info['season2_start'], c_info['season2_end'])]
+    w = [(c_info['ws1_start'], c_info['ws1_end']), (c_info['ws2_start'], c_info['ws2_end'])]
     wet_season = [(int(x[0]), int(x[1])) for x in w if ~np.isnan(x[0])]
     
-    # Get start and end of dry season(s)
-    if len(wet_season) == 1:
-        dry_start = wet_season[0][1] % 12 + 1
-        dry_end = (wet_season[0][0] - 2) % 12 + 1
-        dry_season = [(dry_start, dry_end)]
-    elif len(wet_season) == 2:
-        dry_start1 = wet_season[0][1] % 12 + 1
-        dry_end1 = (wet_season[1][0] - 2) % 12 + 1
-        dry_start2 = wet_season[1][1] % 12 + 1
-        dry_end2 = (wet_season[0][0] - 2) % 12 + 1
-        dry_season = [(dry_start1, dry_end1), (dry_start2, dry_end2)]
-    else:
-        print('Error in country_info wet/dry seasons')
-        sys.exit()
+    # Get start and end of dry season
+    dry_season = [(c_info['ds1_start'], c_info['ds1_end'])]
         
     return (wet_season, dry_season)
 
