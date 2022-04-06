@@ -1,23 +1,23 @@
-ID,ISO,season1_start,season1_end,season1_irrigated,season2_start,season2_end,season2_irrigated,lagNDVItoRain,KöppenGeiger,VCI_alpha
-1,AFG,12,4,no,5,7,no,1,BWh,0.68
-2,BDI,,,,,,,1,Am,0.32
-3,TCD,,,,,,,1,"BWh, BSh",0.68
-4,COG,,,,,,,1,"Am, Af",0.32
-5,SLV,,,,,,,1,Am,0.32
-6,GTM,7,8,no,,,,1,Af,0.32
-7,HTI,5,5,no,9,9,no,1,Am,0.32
-8,HND,,,,,,,1,Am,0.32
-9,IRQ,12,4,no,,,,1,BWh,0.68
-10,LBN,7,8,no,,,,1,Csa,0.32
-11,MWI,12,4,,,,,1,As/Aw,0.32
-12,MLI,,,,,,,1,"BWh, BSh, As/Aw",
-13,NER,7,8,no,,,,1,BWh,0.68
-14,RWA,,,,,,,1,As/Aw,0.32
-15,SLE,7,9,no,,,,1,Am,0.32
-16,SSD,5,6,no,10,11,no,1,As/Aw,0.32
-17,SDN,8,10,no,,,,1,BWh/Bsh,0.68
-18,SYR,1,5,no,6,10,yes,1,BWh/Bsh,0.68
-19,TJK,12,5,no,5,8,no,1,"Dsa, Dsb, Dfd, Csa",0.68
-20,TZA,,,,,,,1,"As/Aw, BSh",
-21,UGA,,,,,,,1,"Am, As/Aw",0.32
-22,ZWE,1,4,no,7,9,no,1,"BSh, Cfb",
+ID,ISO,ws1_start,ws1_end,ds1_start,ds1_end,ws2_start,ws2_end,lagNDVItoRain,lagNDVItoLST,KöppenGeiger,VCI_alpha
+1,AFG,12,4,6,9,,,1,,BWh,0.68
+2,BDI,11,4,6,8,,,1,,Am,0.32
+3,TCD,7,9,11,3,,,1,,BWh,
+4,COG,3,5,6,8,9,11,1,,Am,
+5,SLV,5,6,12,3,8,9,1,,Am,0.32
+6,GTM,5,6,12,3,8,9,1,,Af,0.32
+7,HTI,5,6,12,3,9,10,1,,Am,0.32
+8,HND,5,6,1,3,8,10,1,,Am,0.32
+9,IRQ,12,4,6,9,,,1,,BWh,0.68
+10,LBN,12,3,6,9,,,1,,Csa,0.32
+11,MWI,12,4,7,9,,,1,,As/Aw,0.32
+12,MLI,6,9,11,3,,,1,,BWh,
+13,NER,7,8,11,3,,,1,,BWh,0.68
+14,RWA,3,5,6,7,10,11,1,,As/Aw,0.32
+15,SLE,7,9,12,2,,,1,,Am,0.32
+16,SSD,6,8,12,2,,,1,,As/Aw,0.32
+17,SDN,7,8,11,3,,,1,,BWh/Bsh,0.68
+18,SYR,12,3,6,9,,,1,,BWh/Bsh,0.68
+19,TJK,2,5,6,9,,,1,,Dsa,
+20,TZA,12,4,6,9,,,1,,As/Aw,
+21,UGA,3,5,12,2,8,10,1,,Am,
+22,ZWE,12,3,5,8,,,1,,BSh,
