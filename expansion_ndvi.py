@@ -2,9 +2,12 @@
 
 import os
 import pathlib
+import numpy as np
 import pandas as pd
+import xarray as xr
 import geopandas as gpd
 from datetime import date
+import xarray.ufuncs as xru
 from matplotlib import colors
 import matplotlib.pyplot as plt
 
@@ -82,7 +85,10 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 
         # Load da values
         da_clipped.load()
-
+        
+        # Rescale the data
+        da_clipped = da_clipped / 10000
+        
         # Get intervention dates
         start_intervention = asset_info.loc[ID].start
         end_intervention = asset_info.loc[ID].end
@@ -96,14 +102,17 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
             
             pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))]).max(dim='time')
             post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))]).max(dim='time')
-            
-            exp_pre = pre.where(pre >= 0.5)
-            exp_post = post.where(post < 0.5)       
+            print(pre)
+            exp_pre = xr.where(pre >= 0.5, 1, 0)
+            exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
+            exp_post = xr.where(post < 0.5, 1, 0)  
+            exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)       
 
             name_pre = ID + '_L_' + 'NDVI' + '_' + date_to_str(prew[0]) + '_' + date_to_str(prew[1]) + '_wet.tif'
             exp_pre.rio.to_raster(folder_name + '/' + name_pre)
             name_post = ID + '_L_' + 'NDVI' + '_' + date_to_str(postw[0]) + '_' + date_to_str(postw[1]) + '_wet.tif'
             exp_post.rio.to_raster(folder_name + '/' + name_post)
+            print(exp_pre)
             
             ### Add plot on a basemap
             ### Add font title on the image
@@ -117,6 +126,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
             axs[1].set_title(date_to_str(prew[0]))
             
             fig.suptitle('Maximum NDVI for the wet period months to define over ')
+            fig.savefig(folder_name + '/' + ID + '_L_NDVI' + '_' + date_to_str(prew[0]) + '_' + date_to_str(prew[1]) + '_' + date_to_str(postw[0]) + '_' + date_to_str(postw[1]) + '_wet')
             
                
         for pred, postd in zip(pre_dry, post_dry):
@@ -124,8 +134,10 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
             pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))]).max(dim='time')
             post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))]).max(dim='time')
    
-            exp_pre = pre.where(pre >= 0.5)
-            exp_post = post.where(post < 0.5)        
+            exp_pre = xr.where(pre >= 0.5, 1, 0)
+            exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
+            exp_post = xr.where(post < 0.5, 1, 0)  
+            exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)        
     
             name_pre = ID + '_L_' + 'NDVI' + '_' + date_to_str(pred[0]) + '_' + date_to_str(pred[1]) + '_dry.tif'
             exp_pre.rio.to_raster(folder_name + '/' + name_pre)
@@ -144,7 +156,8 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
             axs[1].set_title(date_to_str(pred[0]))
             
             fig.suptitle('Maximum NDVI for the dry period months to define over ')
-            
+            fig.savefig(folder_name + '/' + ID + '_L_NDVI' + '_' + date_to_str(pred[0]) + '_' + date_to_str(pred[1]) + '_' + date_to_str(postd[0]) + '_' + date_to_str(postd[1]) + '_dry')
+
             
             
 
