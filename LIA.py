@@ -1,14 +1,15 @@
 from helper_fns import *
 import pre_post
 import rfh_ndvi
+import expansion_ndvi
 
 def main():
 
-	# Set paths
-	path_to_shapefile = 'data/Shapefiles/'
-	path_to_asset_info = 'data/Dataframes/asset_info.csv'
-	path_to_country_info = 'data/Dataframes/country_info.csv'
-	path_to_ODC_url = 'data/Rasters/ODC_url.csv'
+    # Set paths
+    path_to_shapefile = 'data/Shapefiles/'
+    path_to_asset_info = 'data/Dataframes/asset_info.csv'
+    path_to_country_info = 'data/Dataframes/country_info.csv'
+    path_to_ODC_url = 'data/Rasters/ODC_url.csv'
 
 	# Delete outputs
 	path_output = './outputs'
@@ -16,8 +17,8 @@ def main():
 
 	# DOWNLOAD DATA
 
-	# Shapefiles
-	shapefiles = glob.glob(path_to_shapefile + '*.shp')
+    # Shapefiles
+    shapefiles = glob.glob(path_to_shapefile + '*.shp')
 
 	# CSV
 	asset_info = read_asset_csv(path_to_asset_info)
@@ -38,23 +39,24 @@ def main():
 	CHIRPS = CHIRPS.band
     
 
-	# Get Country information 
-	iso3 = os.path.basename(shapefiles[0])[:3]
-	c_info = country_info.loc[iso3]
-	(wet_season, dry_season) = get_wet_dry(c_info)
+    # Get Country information 
+    iso3 = os.path.basename(shapefiles[0])[:3]
+    c_info = country_info.loc[iso3]
+    (wet_season, dry_season) = get_wet_dry(c_info)
 
 
-	# PROCESSING
+    # PROCESSING
 
 	#pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'NDVI')
     
 	rfh_ndvi.run(CHIRPS, NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
-
+    
+    #expansion_ndvi.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
 
 
 if __name__ == '__main__':
 
-	main()
+    main()
 
 
 
