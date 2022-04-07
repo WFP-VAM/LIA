@@ -89,3 +89,14 @@ def delete_directory(folder: str):
                 shutil.rmtree(file_path)
         except:
             pass
+
+
+def read_ODC(url: str):
+
+    fs = s3fs.S3FileSystem(anon=True, client_kwargs={'region_name': 'eu-central-1'})
+    
+    da = xr.open_zarr(s3fs.S3Map(url, s3=fs))
+    da = da.assign_coords(time = pd.to_datetime([string_to_date(x) for x in da.time.values]))
+    da = da.band
+
+    return da

@@ -26,11 +26,8 @@ def main():
 	# Rasters
 	ODC_url = pd.read_csv(path_to_ODC_url, index_col = 0, header = None)
 	ODC_url.rename(columns = {1: 'url'}, inplace = True)
-
-	fs = s3fs.S3FileSystem(anon=True, client_kwargs={'region_name': 'eu-central-1'})
-	NDVI = xr.open_zarr(s3fs.S3Map(ODC_url.loc['NDVI']['url'], s3=fs))
-	NDVI = NDVI.assign_coords(time = pd.to_datetime([string_to_date(x) for x in NDVI.time.values]))
-	NDVI = NDVI.band
+	NDVI = read_ODC(ODC_url.loc['NDVI']['url'])
+	LST = read_ODC(ODC_url.loc['LST']['url'])
 
 
 	# Get Country information 
@@ -40,8 +37,12 @@ def main():
 
 
 	# PROCESSING
-
+	print(' ## NDVI pre/post implementation ##')
 	pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'NDVI')
+	print(' ## max NDVI pre/post implementation ##')
+	pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'maxNDVI')
+	print(' ## LST pre/post implementation ##')
+	pre_post.run(LST, shapefiles, wet_season, dry_season, asset_info, path_output, 'LST')
 
 
 if __name__ == '__main__':

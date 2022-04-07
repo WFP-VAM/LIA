@@ -1,4 +1,4 @@
-# pre/post comparison asset area vs surrounding 
+# pre/post comparison asset area vs surroundings
 
 from datetime import date
 import datetime
@@ -14,7 +14,6 @@ import pandas as pd
 import pathlib
 import rasterio as rio
 import rioxarray as rx
-import s3fs
 from tqdm import tqdm
 import xarray as xr
 import zarr
@@ -71,16 +70,32 @@ def get_pre_post_dates(start_intervention, end_intervention, wet_season, dry_sea
     return(pre_wet, post_wet, pre_dry, post_dry)
 
 
-def date_to_str(x: tuple):
-    
-    return str(x[1]) + "{0:0=2d}".format(x[0])
+def unscaling(da, product_type: str):
+
+	if product_type == 'NDVI':
+		da = da.mean(['time'])
+		da = da / 10000
+	elif product_type == 'maxNDVI':
+		da = da.max(['time'])
+		da = da / 10000
+	elif product_type == 'LST':
+		da = da.max(['time'])
+		da = da * 0.02 - 273.15
+	else:
+		print('ERROR: incorrect product_type in prepost')
+		sys.exit()
+
+	return da
 
 
 def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str, product_type: str):
+	'''Possible product_types: NDVI, maxNDVI or LST'''
 
 	# Create output folder
-	folder_name = path_output + '/' + product_type + '_prepost'
+	folder_name = path_output + '/prepost'
 	pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
+
+	unprocessed = []
 
 	for i,shapefile in enumerate(shapefiles):
 	    
@@ -91,7 +106,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 		# Reading asset
 		gdf = gpd.read_file(shapefile)
 
-		# 0.5 degree buffer around asset
+		# 0.2 degree buffer around asset
 		gdf_buf = gdf.buffer(0.2, cap_style = 3)
 
 		# Clip rasters
@@ -109,22 +124,58 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 
 
 		t = da_clipped.time.values
+		i = 1
 
 		for prew, postw in zip(pre_wet, post_wet):
-		    
-		    pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))])
-		    post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))])
-		    diff = post.mean(['time']) - pre.mean(['time'])
-		    
-		    name = ID + '_L_' + product_type + '_' + date_to_str(prew[0]) + '_' + date_to_str(prew[1]) + '_' + date_to_str(postw[0]) + '_' + date_to_str(postw[1]) + '_wet.tif'
-		    diff.rio.to_raster(folder_name + '/' + name)
+
+
+			# Check data is missing to process the asset
+			if pd.to_datetime(date(postw[1][1], postw[1][0], 1)) > t[-1]:
+
+				unprocessed.append([ID, postw])
+
+			else:
+
+				pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))])
+				pre = unscaling(pre, product_type)
+				name = ID + '_L_' + product_type + '_' + str(prew[0][1]) + '_wet' + str(i) + '.tif'
+				pre.rio.to_raster(folder_name + '/' + name)
+
+				post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))])
+				post = unscaling(post, product_type)
+				name = ID + '_L_' + product_type + '_' + str(postw[0][1]) + '_wet' + str(i) + '.tif'
+				post.rio.to_raster(folder_name + '/' + name)
+
+				diff = post - pre
+				name = ID + '_L_' + product_type + '_' + str(prew[0][1]) + '_' + str(postw[0][1]) + '_wet' + str(i) + '.tif'
+				diff.rio.to_raster(folder_name + '/' + name)
+
+			i += 1
 		    
 		    
 		for pred, postd in zip(pre_dry, post_dry):
-		    
-		    pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))])
-		    post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))])
-		    diff = post.mean(['time']) - pre.mean(['time'])
 
-		    name = ID + '_L_' + product_type + '_' + date_to_str(pred[0]) + '_' + date_to_str(pred[1]) + '_' + date_to_str(postd[0]) + '_' + date_to_str(postd[1]) + '_dry.tif'
-		    diff.rio.to_raster(folder_name + '/' + name)
+			# Check data is missing to process the asset
+			if pd.to_datetime(date(postd[1][1], postd[1][0], 1)) > t[-1]:
+
+				unprocessed.append([ID, postd])
+
+			else:
+		    
+			    pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))])
+			    pre = unscaling(pre, product_type)
+			    name = ID + '_L_' + product_type + '_' + str(pred[0][1]) + '_dry.tif'
+			    pre.rio.to_raster(folder_name + '/' + name)
+
+			    post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))])
+			    post = unscaling(post, product_type)
+			    name = ID + '_L_' + product_type + '_' + str(postd[0][1]) + '_dry.tif'
+			    post.rio.to_raster(folder_name + '/' + name)
+
+			    diff = post - pre
+			    name = ID + '_L_' + product_type + '_' + str(pred[0][1]) + '_' + str(postd[0][1]) + '_dry.tif'
+			    diff.rio.to_raster(folder_name + '/' + name)
+
+	unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'season'])
+	name = 'Unprocessed_' + product_type + '.csv'
+	unprocessed.to_csv(folder_name + '/' + name)
