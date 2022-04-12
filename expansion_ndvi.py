@@ -1,4 +1,4 @@
-# regional average monthly rainfall and max NDVI values during year, irrigation crops
+# Expansion of area with NDVI > 0.5 (map)
 
 import os
 import pathlib
@@ -8,8 +8,6 @@ import xarray as xr
 import geopandas as gpd
 from datetime import date
 import xarray.ufuncs as xru
-from matplotlib import colors
-import matplotlib.pyplot as plt
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -68,8 +66,9 @@ def date_to_str(x: tuple):
 def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):
 
     # Create output folder
-    folder_name = path_output + '/' + 'NDVI' + '_expansion'
+    folder_name = path_output + '/' + 'NDVI_expansion'
     pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
+    
     
     for i,shapefile in enumerate(shapefiles):
         
@@ -98,71 +97,50 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 
         t = da_clipped.time.values
         
-        for prew, postw in zip(pre_wet, post_wet):
-            
-            pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))]).max(dim='time')
-            post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))]).max(dim='time')
-            print(pre)
+        for i, (prew, postw) in enumerate(zip(pre_wet, post_wet)):
+                     
+            pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))]).max(dim='time')               
             exp_pre = xr.where(pre >= 0.5, 1, 0)
             exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
-            exp_post = xr.where(post < 0.5, 1, 0)  
-            exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)       
-
-            name_pre = ID + '_L_' + 'NDVI' + '_' + date_to_str(prew[0]) + '_' + date_to_str(prew[1]) + '_wet.tif'
+                                    
+            name_pre = ID + '_L_' + 'NDVI' + '_' + str(prew[1][1]) + '_wet_' + str(i+1) + '.tif'
             exp_pre.rio.to_raster(folder_name + '/' + name_pre)
-            name_post = ID + '_L_' + 'NDVI' + '_' + date_to_str(postw[0]) + '_' + date_to_str(postw[1]) + '_wet.tif'
-            exp_post.rio.to_raster(folder_name + '/' + name_post)
-            print(exp_pre)
             
-            ### Add plot on a basemap
-            ### Add font title on the image
-            ### Add legend on the image
-            fig, axs  = plt.subplots(1,2,figsize=(10,5))
-            cmap = colors.ListedColormap(['saddlebrown', 'forestgreen'])
-            axs[0].imshow(exp_post, cmap=cmap)
-            axs[0].set_title(date_to_str(postw[0]))
+            try:
+               post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))]).max(dim='time')
+               exp_post = xr.where(post >= 0.5, 1, 0)  
+               exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)   
+               
+               name_post = ID + '_L_' + 'NDVI' + '_' + str(postw[1][1]) + '_wet_' + str(i+1) + '.tif'
+               exp_post.rio.to_raster(folder_name + '/' + name_post)
             
-            axs[1].imshow(exp_pre, cmap=cmap)
-            axs[1].set_title(date_to_str(prew[0]))
-            
-            fig.suptitle('Maximum NDVI for the wet period months to define over ')
-            fig.savefig(folder_name + '/' + ID + '_L_NDVI' + '_' + date_to_str(prew[0]) + '_' + date_to_str(prew[1]) + '_' + date_to_str(postw[0]) + '_' + date_to_str(postw[1]) + '_wet')
+            except:
+                if i==0:
+                    print('There is no first wet season post intervention') 
+                else:
+                    print('There is no second wet season post intervention')   
             
                
-        for pred, postd in zip(pre_dry, post_dry):
-    
+        for i, (pred, postd) in enumerate(zip(pre_dry, post_dry)):
+
             pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))]).max(dim='time')
-            post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))]).max(dim='time')
-   
             exp_pre = xr.where(pre >= 0.5, 1, 0)
             exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
-            exp_post = xr.where(post < 0.5, 1, 0)  
-            exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)        
-    
-            name_pre = ID + '_L_' + 'NDVI' + '_' + date_to_str(pred[0]) + '_' + date_to_str(pred[1]) + '_dry.tif'
+                     
+            name_pre = ID + '_L_' + 'NDVI' + '_' + str(pred[1][1]) + '_dry_' + str(i+1) + '.tif'
             exp_pre.rio.to_raster(folder_name + '/' + name_pre)
-            name_post = ID + '_L_' + 'NDVI' + '_' + date_to_str(postd[0]) + '_' + date_to_str(postd[1]) + '_dry.tif'
-            exp_post.rio.to_raster(folder_name + '/' + name_post)
             
-            ### Add plot on a basemap
-            ### Add font title on the image
-            ### Add legend on the image
-            fig, axs  = plt.subplots(1,2,figsize=(10,5))
-            cmap = colors.ListedColormap(['saddlebrown', 'forestgreen'])
-            axs[0].imshow(exp_post, cmap=cmap)
-            axs[0].set_title(date_to_str(postd[0]))
+            try:
+                post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))]).max(dim='time')
+                exp_post = xr.where(post >= 0.5, 1, 0)  
+                exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)  
+                
+                name_post = ID + '_L_' + 'NDVI' + '_' + str(postd[1][1]) + '_dry_' + str(i+1) + '.tif'
+                exp_post.rio.to_raster(folder_name + '/' + name_post)
             
-            axs[1].imshow(exp_pre, cmap=cmap)
-            axs[1].set_title(date_to_str(pred[0]))
-            
-            fig.suptitle('Maximum NDVI for the dry period months to define over ')
-            fig.savefig(folder_name + '/' + ID + '_L_NDVI' + '_' + date_to_str(pred[0]) + '_' + date_to_str(pred[1]) + '_' + date_to_str(postd[0]) + '_' + date_to_str(postd[1]) + '_dry')
-
-            
-            
-
-        
-        
-        
-        
-        
+            except:
+                if i==0:
+                    print('There is no first dry season post intervention') 
+                else:
+                    print('There is no second dry season post intervention') 
+                    
