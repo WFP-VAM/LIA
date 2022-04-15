@@ -69,6 +69,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
     folder_name = path_output + '/' + 'NDVI_expansion'
     pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
     
+    unprocessed = []
     
     for i,shapefile in enumerate(shapefiles):
         
@@ -97,50 +98,55 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 
         t = da_clipped.time.values
         
-        for i, (prew, postw) in enumerate(zip(pre_wet, post_wet)):
-                     
-            pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))]).max(dim='time')               
-            exp_pre = xr.where(pre >= 0.5, 1, 0)
-            exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
-                                    
-            name_pre = ID + '_L_' + 'NDVI' + '_' + str(prew[1][1]) + '_wet_' + str(i+1) + '.tif'
-            exp_pre.rio.to_raster(folder_name + '/' + name_pre)
+        for j, (prew, postw) in enumerate(zip(pre_wet, post_wet)):
             
-            try:
-               post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))]).max(dim='time')
-               exp_post = xr.where(post >= 0.5, 1, 0)  
-               exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)   
-               
-               name_post = ID + '_L_' + 'NDVI' + '_' + str(postw[1][1]) + '_wet_' + str(i+1) + '.tif'
-               exp_post.rio.to_raster(folder_name + '/' + name_post)
-            
-            except:
-                if i==0:
+            # Check if data is missing to process the post analysis of the asset
+            if pd.to_datetime(date(postw[1][1], postw[1][0], 1)) > t[-1]:
+                unprocessed.append([ID, postw])
+                if j==0:
                     print('There is no first wet season post intervention') 
                 else:
-                    print('There is no second wet season post intervention')   
-            
-               
-        for i, (pred, postd) in enumerate(zip(pre_dry, post_dry)):
+                    print('There is no second wet season post intervention')
+                    
 
-            pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))]).max(dim='time')
-            exp_pre = xr.where(pre >= 0.5, 1, 0)
-            exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
-                     
-            name_pre = ID + '_L_' + 'NDVI' + '_' + str(pred[1][1]) + '_dry_' + str(i+1) + '.tif'
-            exp_pre.rio.to_raster(folder_name + '/' + name_pre)
+            else:                     
+                pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))]).max(dim='time')               
+                exp_pre = xr.where(pre >= 0.5, 1, 0)
+                exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)                                        
+                name_pre = ID + '_L_' + 'NDVI' + '_' + str(prew[0][1]) + '_wet_' + str(i+1) + '.tif'
+                exp_pre.rio.to_raster(folder_name + '/' + name_pre)
             
-            try:
-                post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))]).max(dim='time')
+                post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))]).max(dim='time')
                 exp_post = xr.where(post >= 0.5, 1, 0)  
-                exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)  
-                
-                name_post = ID + '_L_' + 'NDVI' + '_' + str(postd[1][1]) + '_dry_' + str(i+1) + '.tif'
+                exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)                  
+                name_post = ID + '_L_' + 'NDVI' + '_' + str(postw[0][1]) + '_wet_' + str(i+1) + '.tif'
                 exp_post.rio.to_raster(folder_name + '/' + name_post)
             
-            except:
-                if i==0:
+               
+        for j, (pred, postd) in enumerate(zip(pre_dry, post_dry)):
+            
+            # Check if data is missing to process the post analysis of the asset
+            if pd.to_datetime(date(postd[1][1], postd[1][0], 1)) > t[-1]:
+                unprocessed.append([ID, postd])
+                if j==0:
                     print('There is no first dry season post intervention') 
                 else:
-                    print('There is no second dry season post intervention') 
-                    
+                    print('There is no second dry season post intervention')  
+            
+            
+            else:
+                pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))]).max(dim='time')
+                exp_pre = xr.where(pre >= 0.5, 1, 0)
+                exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)                         
+                name_pre = ID + '_L_' + 'NDVI' + '_' + str(pred[0][1]) + '_dry_' + str(i+1) + '.tif'
+                exp_pre.rio.to_raster(folder_name + '/' + name_pre)
+
+                post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))]).max(dim='time')
+                exp_post = xr.where(post >= 0.5, 1, 0)  
+                exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)                  
+                name_post = ID + '_L_' + 'NDVI' + '_' + str(postd[0][1]) + '_dry_' + str(i+1) + '.tif'
+                exp_post.rio.to_raster(folder_name + '/' + name_post)
+            
+    unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'season'])
+    name = 'Unprocessed_NDVI.csv'
+    unprocessed.to_csv(folder_name + '/' + name)
