@@ -104,7 +104,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
             if pd.to_datetime(date(postw[1][1], postw[1][0], 1)) > t[-1]:
                 unprocessed.append([ID, postw])
                 if j==0:
-                    print('There is no first wet season post intervention') 
+                    print('There is no wet season post intervention') 
                 else:
                     print('There is no second wet season post intervention')
                     
@@ -129,7 +129,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
             if pd.to_datetime(date(postd[1][1], postd[1][0], 1)) > t[-1]:
                 unprocessed.append([ID, postd])
                 if j==0:
-                    print('There is no first dry season post intervention') 
+                    print('There is no dry season post intervention') 
                 else:
                     print('There is no second dry season post intervention')  
             
