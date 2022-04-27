@@ -44,6 +44,7 @@ def main():
     c_info = country_info.loc[iso3]
     (wet_season, dry_season) = get_wet_dry(c_info)
 
+<<<<<<< Updated upstream
 
     # PROCESSING
 
@@ -53,6 +54,21 @@ def main():
     
     #expansion_ndvi.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
 
+=======
+	# PROCESSING
+    print(' ## NDVI pre/post implementation ##')
+    pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'NDVI')
+    print(' ## max NDVI pre/post implementation ##')
+    pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'maxNDVI')
+    print(' ## LST pre/post implementation ##')
+    pre_post.run(LST, shapefiles, wet_season, dry_season, asset_info, path_output, 'LST')
+    print(' ## Rainfall & max NDVI ##')
+    #rfh_ndvi.run(CHIRPS, NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
+    print(' ## Expansion NDVI ##')
+    expansion_ndvi.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
+    print(' ## ENSO analysis ##')
+    enso.run(CHIRPS,shapefiles, wet_season, dry_season, ENSO, path_output, n_years=5)
+>>>>>>> Stashed changes
 
 if __name__ == '__main__':
 
