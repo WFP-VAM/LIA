@@ -12,6 +12,7 @@ import geopandas as gpd
 from datetime import date
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+from helper_fns import check_asset_size 
 
 
 def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):
@@ -20,6 +21,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 	folder_name = path_output + '/' + 'rfh_ndvi'
 	pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
 
+	unprocessed = []
     
 	for i,shapefile in enumerate(shapefiles):
  
@@ -32,6 +34,16 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 
         # 0.2 degree buffer around asset
 		gdf_buf = gdf.buffer(0.2, cap_style = 3)
+        
+        # Check asset size  
+		if not check_asset_size(da_ndvi, gdf):
+			print('The asset is too small to be processed')
+			unprocessed.append([ID, 'Asset too small for NDVI'])
+			continue  
+		if not check_asset_size(da_chirps, gdf_buf):
+			print('The asset is too small to be processed')
+			unprocessed.append([ID, 'Asset too small for CHIRPS'])
+			continue 
         
         # Non asset site 
 		gdf_buf_out = gdf_buf - gdf
@@ -70,15 +82,16 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		mean_chirps = da_chirps_clipped.mean(dim=['latitude','longitude']).sel(time = t[(t.values >= pd.to_datetime(date(start_intervention[1]-1, 1, 1))) & (t.values <= pd.to_datetime(date(end_intervention[1]+1, 12, 31)))])
         
         # Create csv
-		with open(folder_name + '/' + ID + '_rfh.csv', 'w', encoding='UTF8') as f:
+		with open(folder_name + '/' + ID + '_rfh.csv', 'w', newline='', encoding='UTF8') as f:
             # create the csv writer
-			writer = csv.writer(f)
-            # write first row to the csv file
-			writer.writerow([*['date'],*list(pd.to_datetime(da_chirps.time.values).strftime("%Y-%m"))])
-            # write max_ndvi
-			writer.writerow([*['max_ndvi'],*list(max_ndvi_lta.values)])
-            # write mean_chirps
-			writer.writerow([*['mean_chirps'],*list(mean_chirps_lta.values)])
+			writer = csv.writer(f, delimiter = ';')
+            # define zip to write columns
+			rows = zip([*['date'],*list(pd.to_datetime(da_chirps.time.values).strftime("%Y-%m"))], 
+                       [*['max_ndvi'],*list(max_ndvi_lta.values)], 
+                       [*['mean_chirps'],*list(mean_chirps_lta.values)])
+            # write row by row to the csv file
+			for row in rows:
+				writer.writerow(row)
 
         # Crop to same timestamps
 		t = list(set(mean_chirps.time.values).intersection(mean_ndvi_ffa.time.values))
@@ -107,7 +120,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		fig.suptitle('Regional Average Monthly Rainfall & NDVI') 
 		plt.title(ID) 
 		plt.savefig(folder_name + '/' + name)
-
+        
         # Plot regional monthly rainfall & NDVI
 		name = ID + '_rfh.png'
 		n_years = end_intervention[1] - start_intervention[1] + 3 
@@ -119,10 +132,16 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		ax.set_xticklabels(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']*n_years)
 		ax2 = ax.twinx()
 		ax2.plot(t, mean_ndvi_ffa, '-', color = 'darkgreen', label = 'NDVI at FFA site')
-		ax2.plot(t, mean_ndvi_non, '-', color = 'yellowgreen', label = 'NDVI Non FFA site')
+		ax2.plot(t, mean_ndvi_non, '-', color = 'olive', label = 'NDVI Non FFA site')
 		ax2.plot(t, lin_reg_ffa.slope * t + lin_reg_ffa.intercept, ':', color = 'darkgreen', label = 'Linear (NDVI at FFA site)')
-		ax2.plot(t, lin_reg_non.slope * t + lin_reg_ffa.intercept, ':', color = 'yellowgreen', label = 'Linear (NDVI Non FFA site)')
+		ax2.plot(t, lin_reg_non.slope * t + lin_reg_ffa.intercept, ':', color = 'olive', label = 'Linear (NDVI Non FFA site)')
 		ax2.vlines(x = np.array(t[::12][1:])-0.5, ymin = min(mean_ndvi_ffa)-0.1, ymax = max(mean_ndvi_ffa)+0.1, linestyles = 'dashdot')
+		ax2.vlines(x = np.array(t[12+start_intervention[0]-1]), ymin = min(mean_ndvi_ffa)-0.1, ymax = max(mean_ndvi_ffa)+0.1, linestyles = 'dotted', color = 'red')
+		offset = 0.1 * (start_intervention[0] <= 6) - 2.3 * (start_intervention[0] > 6)
+		ax2.annotate('start\nintervention', (t[12+start_intervention[0]-1]+offset,max(mean_ndvi_ffa)+0.07), color='red')
+		ax2.vlines(x = np.array(t[12*(n_years-2)+end_intervention[0]-1]), ymin = min(mean_ndvi_ffa)-0.1, ymax = max(mean_ndvi_ffa)+0.1, linestyles = 'dotted', color = 'red')
+		offset = 0.1 * (end_intervention[0] <= 6) - 2.2 * (end_intervention[0] > 6)
+		ax2.annotate('end\nintervention', (t[12*(n_years-2)+end_intervention[0]-1]+offset,max(mean_ndvi_ffa)+0.07), color='red')
 		for i in range(n_years): ax2.annotate(str(start_intervention[1]-1+i),(6+12*i,max(mean_ndvi_ffa)+0.05), fontsize = 15)
 		ax2.annotate('R2 = '+str(round(lin_reg_ffa.rvalue**2,4)),(t[-1],lin_reg_ffa.slope * t[-1] + lin_reg_ffa.intercept))
 		ax2.annotate('R2 = '+str(round(lin_reg_non.rvalue**2,4)),(t[-1],lin_reg_non.slope * t[-1] + lin_reg_ffa.intercept))
@@ -132,3 +151,8 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		fig.suptitle('Regional Monthly Rainfall & NDVI trends ' + str(start_intervention[1]-1) + ' to ' + str(end_intervention[1]+1)) 
 		plt.title(ID) 
 		plt.savefig(folder_name + '/' + name)
+        
+        
+	unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'issue'])
+	name = 'Unprocessed.csv'
+	unprocessed.to_csv(folder_name + '/' + name)        
