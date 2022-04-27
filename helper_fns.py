@@ -102,3 +102,18 @@ def read_ODC(url: str):
     da = da.band
 
     return da
+    
+
+def check_asset_size(da, gdf):
+    '''
+    Check if the asset is big enough to be processed
+    '''
+    
+    sufficient = True
+    
+    try:
+        da.rio.clip(gdf.geometry.values, gdf.crs)
+    except:
+        sufficient = False
+    
+    return sufficient
