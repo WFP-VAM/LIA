@@ -12,6 +12,7 @@ import geopandas as gpd
 from datetime import date
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+from helper_fns import check_asset_size 
 
 
 def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):
@@ -20,6 +21,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 	folder_name = path_output + '/' + 'rfh_ndvi'
 	pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
 
+	unprocessed = []
     
 	for i,shapefile in enumerate(shapefiles):
  
@@ -32,6 +34,16 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 
         # 0.2 degree buffer around asset
 		gdf_buf = gdf.buffer(0.2, cap_style = 3)
+        
+        # Check asset size  
+		if not check_asset_size(da_ndvi, gdf):
+			print('The asset is too small to be processed')
+			unprocessed.append([ID, 'Asset too small for NDVI'])
+			continue  
+		if not check_asset_size(da_chirps, gdf_buf):
+			print('The asset is too small to be processed')
+			unprocessed.append([ID, 'Asset too small for CHIRPS'])
+			continue 
         
         # Non asset site 
 		gdf_buf_out = gdf_buf - gdf
@@ -70,7 +82,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		mean_chirps = da_chirps_clipped.mean(dim=['latitude','longitude']).sel(time = t[(t.values >= pd.to_datetime(date(start_intervention[1]-1, 1, 1))) & (t.values <= pd.to_datetime(date(end_intervention[1]+1, 12, 31)))])
         
         # Create csv
-		with open(folder_name + '/' + ID + '_rfh.csv', 'w', encoding='UTF8') as f:
+		with open(folder_name + '/' + ID + '_rfh.csv', 'w', newline='', encoding='UTF8') as f:
             # create the csv writer
 			writer = csv.writer(f, delimiter = ';')
             # define zip to write columns
@@ -139,3 +151,8 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		fig.suptitle('Regional Monthly Rainfall & NDVI trends ' + str(start_intervention[1]-1) + ' to ' + str(end_intervention[1]+1)) 
 		plt.title(ID) 
 		plt.savefig(folder_name + '/' + name)
+        
+        
+	unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'issue'])
+	name = 'Unprocessed.csv'
+	unprocessed.to_csv(folder_name + '/' + name)        

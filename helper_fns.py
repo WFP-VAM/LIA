@@ -100,9 +100,6 @@ def delete_directory(folder: str):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except:
-<<<<<<< Updated upstream
-            pass
-=======
             pass
 
 
@@ -130,4 +127,3 @@ def check_asset_size(da, gdf):
         sufficient = False
     
     return sufficient
->>>>>>> Stashed changes

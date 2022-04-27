@@ -72,20 +72,25 @@ def get_pre_post_dates(start_intervention, end_intervention, wet_season, dry_sea
     return(pre_wet, post_wet, pre_dry, post_dry)
 
 
-def date_to_str(x: tuple):
-    
-    return str(x[1]) + "{0:0=2d}".format(x[0])
+def unscaling(da, product_type: str):
+
+	if product_type == 'NDVI':
+		da = da.mean(['time'])
+		da = da / 10000
+	elif product_type == 'maxNDVI':
+		da = da.max(['time'])
+		da = da / 10000
+	elif product_type == 'LST':
+		da = da.max(['time'])
+		da = da * 0.02 - 273.15
+	else:
+		print('ERROR: incorrect product_type in prepost')
+		sys.exit()
+
+	return da
 
 
 def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str, product_type: str):
-<<<<<<< Updated upstream
-
-	# Create output folder
-	folder_name = path_output + '/' + product_type + '_prepost'
-	pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
-
-	for i,shapefile in enumerate(shapefiles):
-=======
     '''Possible product_types: NDVI, maxNDVI or LST'''
     
 	# Create output folder
@@ -95,7 +100,6 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
     unprocessed = []
 
     for i,shapefile in enumerate(shapefiles):
->>>>>>> Stashed changes
 	    
 		# Get asset ID
         ID = os.path.basename(shapefile)[:-4]
@@ -104,10 +108,6 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 		# Reading asset
         gdf = gpd.read_file(shapefile)
 
-<<<<<<< Updated upstream
-		# 0.5 degree buffer around asset
-		gdf_buf = gdf.buffer(0.2, cap_style = 3)
-=======
 		# 0.2 degree buffer around asset
         gdf_buf = gdf.buffer(0.2, cap_style = 3)
         
@@ -116,7 +116,6 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
             print('The asset is too small to be processed')
             unprocessed.append([ID, 'Asset too small', 'N/A'])
             continue
->>>>>>> Stashed changes
 
         # Clip rasters
         da_clipped = da.rio.clip(gdf_buf.geometry.values, gdf_buf.crs)
@@ -131,29 +130,6 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 		# Get comparison dates
         (pre_wet, post_wet, pre_dry, post_dry) = get_pre_post_dates(start_intervention, end_intervention, wet_season, dry_season)
 
-
-<<<<<<< Updated upstream
-		t = da_clipped.time.values
-
-		for prew, postw in zip(pre_wet, post_wet):
-		    
-		    pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))])
-		    post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))])
-		    diff = post.mean(['time']) - pre.mean(['time'])
-		    
-		    name = ID + '_L_' + product_type + '_' + date_to_str(prew[0]) + '_' + date_to_str(prew[1]) + '_' + date_to_str(postw[0]) + '_' + date_to_str(postw[1]) + '_wet.tif'
-		    diff.rio.to_raster(folder_name + '/' + name)
-		    
-		    
-		for pred, postd in zip(pre_dry, post_dry):
-		    
-		    pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))])
-		    post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))])
-		    diff = post.mean(['time']) - pre.mean(['time'])
-
-		    name = ID + '_L_' + product_type + '_' + date_to_str(pred[0]) + '_' + date_to_str(pred[1]) + '_' + date_to_str(postd[0]) + '_' + date_to_str(postd[1]) + '_dry.tif'
-		    diff.rio.to_raster(folder_name + '/' + name)
-=======
         t = da_clipped.time.values
         j = 1
 
@@ -212,4 +188,3 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
     unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'issue', 'season'])
     name = 'Unprocessed_' + product_type + '.csv'
     unprocessed.to_csv(folder_name + '/' + name)
->>>>>>> Stashed changes
