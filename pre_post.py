@@ -110,10 +110,10 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 		gdf = gpd.read_file(shapefile)
 
 		# Check asset size        
-        if not check_asset_size(da, gdf):
-            print('The asset is too small to be processed')
-            unprocessed.append([ID, 'Asset too small', 'N/A'])
-            continue
+		if not check_asset_size(da, gdf):
+			print('The asset is too small to be processed')
+			unprocessed.append([ID, 'Asset too small', 'N/A'])
+			continue
 
 		# 0.2 degree buffer around asset
 		gdf_buf = gdf.buffer(0.2, cap_style = 3)

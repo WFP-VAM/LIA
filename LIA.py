@@ -4,6 +4,11 @@ from tkinter import *
 from helper_fns import *
 import pre_post
 import tci_vci_vhi
+import rfh_ndvi
+import expansion_ndvi
+import enso
+
+
 
 def main(select: bool):
 
