@@ -19,7 +19,7 @@ import xarray as xr
 import zarr
 import dask 
 
-from helper_fns import delete_directory
+from helper_fns import delete_directory, check_asset_siz
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -154,8 +154,6 @@ def save_rasters_dry(da, pred: list, postd: list, folder_name: str, pdct: str, I
 
 
 
-
-
 def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):
 
 	# Create output folder
@@ -173,6 +171,12 @@ def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_i
 
 		# Reading asset
 		gdf = gpd.read_file(shapefile)
+
+		# Check asset size        
+        if not check_asset_size(da, gdf):
+            print('The asset is too small to be processed')
+            unprocessed.append([ID, 'Asset too small', 'N/A'])
+            continue
 
 		# 0.2 degree buffer around asset
 		gdf_buf = gdf.buffer(0.2, cap_style = 3)
