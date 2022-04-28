@@ -64,7 +64,7 @@ def main(select: bool):
 
 	# CSV
 	asset_info = read_asset_csv(path_to_asset_info)
-	country_info = pd.read_csv(path_to_country_info, index_col = 1, header = 0)
+	country_info = pd.read_csv(path_to_country_info, index_col = 1, header = 0, encoding='ISO-8859-1')
 	ENSO = pd.read_csv(path_to_enso, index_col = 0, header = 0, sep = ';', encoding='utf8')
 
 	# Rasters
