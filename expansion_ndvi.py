@@ -128,7 +128,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
                 exp_post.rio.to_raster(folder_name + '/' + name_post)
 
 
-        for pred, postd in enumerate(zip(pre_dry, post_dry)):
+        for pred, postd in zip(pre_dry, post_dry):
 
             # Check if data is missing to process the post analysis of the asset
             if pd.to_datetime(date(postd[1][1], postd[1][0], 1)) > t[-1]:
