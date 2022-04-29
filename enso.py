@@ -10,7 +10,7 @@ import pandas as pd
 from numpy import isnan
 import geopandas as gpd
 from datetime import date
-from helper_fns import check_asset_size
+from helper_fns import delete_directory, check_asset_size
 
 
 def get_dates(current_year, n_years, dry_season, wet_season, chirps_last, enso_last):
@@ -127,6 +127,7 @@ def run(da_chirps, shapefiles: list, wet_season: list, dry_season: list, enso: p
 
     # Create output folder
     folder_name = path_output + '/' + 'enso'
+    delete_directory(folder_name)
     pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
 
     # Current year
