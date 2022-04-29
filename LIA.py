@@ -10,7 +10,7 @@ import enso
 
 
 
-def main(select: bool):
+def main(select: bool, check_dates:bool):
 
 	# Checkbox
 	if select:
@@ -79,7 +79,33 @@ def main(select: bool):
 	iso3 = os.path.basename(shapefiles[0])[:3]
 	c_info = country_info.loc[iso3]
 	(wet_season, dry_season) = get_wet_dry(c_info)
+    
+    
+    # Check dates of the datasets if --check_dates
+	if check_dates:
 
+		print('   --- Check dates of the datasets ---\n')        
+        # print NDVI dates
+		start_date = str(pd.to_datetime(NDVI.time[0].values).date())
+		end = str(pd.to_datetime(NDVI.time[-1].values).date())
+		print('NDVI dates range: ' + start_date + '...' + end_date)
+        
+        # print LST dates
+		start_date = str(pd.to_datetime(LST.time[0].values).date())
+		end = str(pd.to_datetime(LST.time[-1].values).date())
+		print('LST dates range: ' + start_date + '...' + end_date)
+        
+        # print CHIRPS data
+		start_date = str(pd.to_datetime(CHIRPS.time[0].values).date())
+		end = str(pd.to_datetime(CHIRPS.time[-1].values).date())
+		print('NDVI dates range: ' + start_date + '...' + end_date)
+		print('\n---------------------------------------------') 
+        
+        # don't run the analysis
+		run = [0, 0, 0, 0, 0, 0, 0]
+        
+        
+        
 
 	# PROCESSING
 	if run[0] == 1:
@@ -113,11 +139,12 @@ if __name__ == '__main__':
 
 	# Flags
 	parser.add_argument('--select', action='store_true', help='Select analysis')
+	parser.add_argument('--check_dates', action='store_true', help='Check available dates for each dataset')
 
 	# Parse
 	args = parser.parse_args()
 
-	main(args.select)
+	main(args.select, args.check_dates)
 
 
 
