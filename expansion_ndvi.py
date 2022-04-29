@@ -67,6 +67,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 
     # Create output folder
     folder_name = path_output + '/' + 'NDVI_expansion'
+    delete_directory(folder_name)
     pathlib.Path(folder_name).mkdir(parents=True, exist_ok=True)
 
     unprocessed = []
