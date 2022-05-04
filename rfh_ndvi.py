@@ -83,7 +83,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		mean_chirps = da_chirps_clipped.mean(dim=['latitude','longitude']).sel(time = t[(t.values >= pd.to_datetime(date(start_intervention[1]-1, 1, 1))) & (t.values <= pd.to_datetime(date(end_intervention[1]+1, 12, 31)))])
         
         # Create csv
-		with open(folder_name + '/' + ID + '_rfh.csv', 'w', newline='', encoding='UTF8') as f:
+		with open(folder_name + '/' + ID + '_L_rfh.csv', 'w', newline='', encoding='UTF8') as f:
             # create the csv writer
 			writer = csv.writer(f, delimiter = ';')
             # define zip to write columns
@@ -107,7 +107,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		lin_reg_ffa = linregress(range(1,len(mean_chirps.time.values)+1),mean_ndvi_ffa.values)       
             
         # Plot regional average monthly rainfall & NDVI
-		name = ID + '_lta_rfh.png'
+		name = ID + '_L_lta_rfh.png'
 		fig,ax = plt.subplots(1,1,figsize=(20,10))
 		ax.bar(range(1,13), mean_chirps_lta, color = '#a7c3d1', label = 'Average monthly rainfall')
 		ax.set_ylabel('Rainfall (mm)')
@@ -123,7 +123,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		plt.savefig(folder_name + '/' + name)
         
         # Plot regional monthly rainfall & NDVI
-		name = ID + '_rfh.png'
+		name = ID + '_L_rfh.png'
 		n_years = end_intervention[1] - start_intervention[1] + 3 
 		t = range(1,len(mean_chirps.time.values)+1)
 		fig,ax = plt.subplots(1,1,figsize=(20,10))
