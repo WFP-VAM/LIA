@@ -125,30 +125,30 @@ def get_pre_post_dates(start_intervention, end_intervention, wet_season, dry_sea
 def save_rasters_wet(da, prew: list, postw: list, i: int, folder_name: str, pdct: str, ID: str):
 
 	da_pre = da.sel(time = pd.to_datetime(date(prew[0][1], prew[0][0], 1)))
-	name = ID + '_L_' + pdct + '_' + str(prew[0][1]) + '_wet' + str(i) + '.tif'
+	name = ID + '_L_' + pdct + '_wet' + str(i) + '_' + str(prew[0][1]) + '.tif'
 	da_pre.rio.to_raster(folder_name + '/' + name)
 
 	da_post = da.sel(time = pd.to_datetime(date(postw[0][1], postw[0][0], 1)))
-	name = ID + '_L_' + pdct + '_' + str(postw[0][1]) + '_wet' + str(i) + '.tif'
+	name = ID + '_L_' + pdct + '_wet' + str(i) + '_' + str(postw[0][1]) + '.tif'
 	da_post.rio.to_raster(folder_name + '/' + name)
 
 	diff = da_post - da_pre
-	name = ID + '_L_' + pdct + '_' + str(prew[0][1]) + '_' + str(postw[0][1]) + '_wet' + str(i) + '.tif'
+	name = ID + '_L_' + pdct + '_wet' + str(i) + '_' + str(prew[0][1]) + '_' + str(postw[0][1]) + '.tif'
 	diff.rio.to_raster(folder_name + '/' + name)
 
 
 def save_rasters_dry(da, pred: list, postd: list, folder_name: str, pdct: str, ID: str):
 
 	da_pre = da.sel(time = pd.to_datetime(date(pred[0][1], pred[0][0], 1)))
-	name = ID + '_L_' + pdct + '_' + str(pred[0][1]) + '_dry' + '.tif'
+	name = ID + '_L_' + pdct + '_dry' + '_' + str(pred[0][1]) + '.tif'
 	da_pre.rio.to_raster(folder_name + '/' + name)
 
 	da_post = da.sel(time = pd.to_datetime(date(postd[0][1], postd[0][0], 1)))
-	name = ID + '_L_' + pdct + '_' + str(postd[0][1]) + '_dry' + '.tif'
+	name = ID + '_L_' + pdct + '_dry' + '_' + str(postd[0][1]) + '.tif'
 	da_post.rio.to_raster(folder_name + '/' + name)
 
 	diff = da_post - da_pre
-	name = ID + '_L_' + pdct + '_' + str(pred[0][1]) + '_' + str(postd[0][1]) + '_dry' + '.tif'
+	name = ID + '_L_' + pdct + '_dry' + '_' + str(pred[0][1]) + '_' + str(postd[0][1]) + '.tif'
 	diff.rio.to_raster(folder_name + '/' + name)
 
 
