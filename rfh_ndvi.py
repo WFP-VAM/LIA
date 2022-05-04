@@ -130,7 +130,7 @@ def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list
 		ax.bar(t, mean_chirps, color = '#a7c3d1', label = 'Average monthly rainfall')
 		ax.set_ylabel('Rainfall (mm)')
 		ax.set_xticks(np.arange(1, len(mean_chirps.time.values)+1, 1.0))
-		ax.set_xticklabels(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']*n_years)
+		ax.set_xticklabels((['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']*n_years)[:len(t)])
 		ax2 = ax.twinx()
 		ax2.plot(t, mean_ndvi_ffa, '-', color = 'darkgreen', label = 'NDVI at FFA site')
 		ax2.plot(t, mean_ndvi_non, '-', color = 'olive', label = 'NDVI Non FFA site')
