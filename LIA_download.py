@@ -55,7 +55,7 @@ def main(check_dates:bool):
 
 		print('\n---------------------------------------------\n')
 
-		NDVI
+		# NDVI
 		print('   --- Downloading NDVI Data ---')
 		name = path_zarr + 'NDVI.zarr'
 		ODC_to_disk(ODC_url.loc['NDVI']['url'], name)

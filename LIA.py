@@ -68,9 +68,9 @@ def main(select: bool):
 	ENSO = pd.read_csv(path_to_enso, index_col = 0, header = 0, sep = ';', encoding='utf8')
 
 	# Rasters
-	NDVI = xr.open_zarr(path_to_zarr + 'NDVI.zarr')
-	LST = xr.open_zarr(path_to_zarr + 'LST.zarr')
-	CHIRPS = xr.open_zarr(path_to_zarr + 'CHIRPS.zarr')
+	NDVI = xr.open_zarr(path_to_zarr + 'NDVI.zarr').band
+	LST = xr.open_zarr(path_to_zarr + 'LST.zarr').band
+	CHIRPS = xr.open_zarr(path_to_zarr + 'CHIRPS.zarr').band
 
 
 	# Get Country information 
