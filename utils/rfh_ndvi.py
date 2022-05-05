@@ -12,7 +12,7 @@ import geopandas as gpd
 from datetime import date
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
-from helper_fns import delete_directory, check_asset_size
+from utils.helper_fns import delete_directory, check_asset_size
 
 
 def run(da_chirps, da_ndvi, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):

@@ -10,7 +10,7 @@ import pandas as pd
 from numpy import isnan
 import geopandas as gpd
 from datetime import date
-from helper_fns import delete_directory, check_asset_size
+from utils.helper_fns import delete_directory, check_asset_size
 
 
 def get_dates(current_year, n_years, dry_season, wet_season, chirps_last, enso_last):

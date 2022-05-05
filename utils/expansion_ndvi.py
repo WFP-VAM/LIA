@@ -8,7 +8,7 @@ import xarray as xr
 import geopandas as gpd
 from datetime import date
 import xarray.ufuncs as xru
-from helper_fns import delete_directory, check_asset_size
+from utils.helper_fns import delete_directory, check_asset_size
 
 import warnings
 warnings.filterwarnings("ignore")

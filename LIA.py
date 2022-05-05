@@ -1,12 +1,12 @@
 import argparse
 from tkinter import *
 
-from helper_fns import *
-import pre_post
-import tci_vci_vhi
-import rfh_ndvi
-import expansion_ndvi
-import enso
+from utils.helper_fns import *
+from utils import pre_post
+from utils import tci_vci_vhi
+from utils import rfh_ndvi
+from utils import expansion_ndvi
+from utils import enso
 
 
 

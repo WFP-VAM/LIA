@@ -5,7 +5,7 @@ import s3fs
 import xarray as xr
 import zarr
 
-from helper_fns import delete_directory, ODC_to_disk, read_ODC
+from utils.helper_fns import delete_directory, ODC_to_disk, read_ODC
 
 
 
