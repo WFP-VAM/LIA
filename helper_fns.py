@@ -102,6 +102,16 @@ def read_ODC(url: str):
     da = da.band
 
     return da
+
+
+def ODC_to_disk(url: str, output_name: str):
+
+    fs = s3fs.S3FileSystem(anon=True, client_kwargs={'region_name': 'eu-central-1'})
+    
+    da = xr.open_zarr(s3fs.S3Map(url, s3=fs))
+    da = da.assign_coords(time = pd.to_datetime([string_to_date(x) for x in da.time.values]))
+    
+    da.to_zarr(output_name, mode = 'w')
     
 
 def check_asset_size(da, gdf):

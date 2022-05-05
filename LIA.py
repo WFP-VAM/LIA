@@ -10,7 +10,7 @@ import enso
 
 
 
-def main(select: bool, check_dates:bool):
+def main(select: bool):
 
 	# Checkbox
 	if select:
@@ -53,7 +53,7 @@ def main(select: bool, check_dates:bool):
 	path_to_asset_info = 'data/Dataframes/asset_info.csv'
 	path_to_country_info = 'data/Dataframes/country_info.csv'
 	path_to_enso = 'data/Dataframes/ENSO.csv'
-	path_to_ODC_url = 'data/Rasters/ODC_url.csv'
+	path_to_zarr = 'data/Rasters/zarr_data/'
 	path_output = 'outputs'
 
 
@@ -68,42 +68,15 @@ def main(select: bool, check_dates:bool):
 	ENSO = pd.read_csv(path_to_enso, index_col = 0, header = 0, sep = ';', encoding='utf8')
 
 	# Rasters
-	ODC_url = pd.read_csv(path_to_ODC_url, index_col = 0, header = None)
-	ODC_url.rename(columns = {1: 'url'}, inplace = True)
-	NDVI = read_ODC(ODC_url.loc['NDVI']['url'])
-	LST = read_ODC(ODC_url.loc['LST']['url'])
-	CHIRPS = read_ODC(ODC_url.loc['CHIRPS']['url'])
+	NDVI = xr.open_zarr(path_to_zarr + 'NDVI.zarr')
+	LST = xr.open_zarr(path_to_zarr + 'LST.zarr')
+	CHIRPS = xr.open_zarr(path_to_zarr + 'CHIRPS.zarr')
 
 
 	# Get Country information 
 	iso3 = os.path.basename(shapefiles[0])[:3]
 	c_info = country_info.loc[iso3]
 	(wet_season, dry_season) = get_wet_dry(c_info)
-    
-    
-    # Check dates of the datasets if --check_dates
-	if check_dates:
-
-		print('   --- Check dates of the datasets ---\n')        
-        # print NDVI dates
-		start_date = str(pd.to_datetime(NDVI.time[0].values).date())
-		end = str(pd.to_datetime(NDVI.time[-1].values).date())
-		print('NDVI dates range: ' + start_date + '...' + end_date)
-        
-        # print LST dates
-		start_date = str(pd.to_datetime(LST.time[0].values).date())
-		end = str(pd.to_datetime(LST.time[-1].values).date())
-		print('LST dates range: ' + start_date + '...' + end_date)
-        
-        # print CHIRPS data
-		start_date = str(pd.to_datetime(CHIRPS.time[0].values).date())
-		end = str(pd.to_datetime(CHIRPS.time[-1].values).date())
-		print('NDVI dates range: ' + start_date + '...' + end_date)
-		print('\n---------------------------------------------') 
-        
-        # don't run the analysis
-		run = [0, 0, 0, 0, 0, 0, 0]
-        
         
         
 
@@ -128,7 +101,7 @@ def main(select: bool, check_dates:bool):
 		expansion_ndvi.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
 	if run[6] == 1:
 		print('\n' + ' ## ENSO analysis ##')
-		enso.run(CHIRPS,shapefiles, wet_season, dry_season, ENSO, path_output, n_years=5)
+		enso.run(CHIRPS, shapefiles, wet_season, dry_season, ENSO, path_output, n_years=5)
 
 
 
@@ -139,12 +112,11 @@ if __name__ == '__main__':
 
 	# Flags
 	parser.add_argument('--select', action='store_true', help='Select analysis')
-	parser.add_argument('--check_dates', action='store_true', help='Check available dates for each dataset')
 
 	# Parse
 	args = parser.parse_args()
 
-	main(args.select, args.check_dates)
+	main(args.select)
 
 
 
