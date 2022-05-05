@@ -1,6 +1,3 @@
-CHIRPS,s3://wfp-share/LIA/SYR/syrrfh_monthly.zarr/
-CHIRPS LTA,s3://wfp-share/LIA/SYR/syrrfh_monthly_avg.zarr/
-NDVI,s3://wfp-share/LIA/SYR/syrvim_monthly.zarr/
-NDVI LTA,s3://wfp-share/LIA/SYR/syrvim_monthly_avg.zarr/
-LST,s3://wfp-share/LIA/SYR/syrtda_monthly.zarr/
-LST LTA,s3://wfp-share/LIA/SYR/syrtda_monthly_avg.zarr/
+CHIRPS,s3://dev.earthobservation.vam.wfp.org/LIA/SYR/syrrfh_monthly.zarr/
+NDVI,s3://dev.earthobservation.vam.wfp.org/LIA/SYR/syrvim_monthly.zarr/
+LST,s3://dev.earthobservation.vam.wfp.org/LIA/SYR/syrtda_monthly.zarr/
