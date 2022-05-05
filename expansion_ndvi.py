@@ -119,13 +119,13 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
                 pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))]).max(dim='time')
                 exp_pre = xr.where(pre >= 0.5, 1, 0)
                 exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
-                name_pre = ID + '_L_' + 'NDVI' + '_' + str(prew[0][1]) + '_wet' + str(j+1) + '.tif'
+                name_pre = ID + '_L_' + 'NDVI' + '_wet' + str(j+1) + '_' + str(prew[0][1]) + '.tif'
                 exp_pre.rio.to_raster(folder_name + '/' + name_pre)
 
                 post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))]).max(dim='time')
                 exp_post = xr.where(post >= 0.5, 1, 0)
                 exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)
-                name_post = ID + '_L_' + 'NDVI' + '_' + str(postw[0][1]) + '_wet' + str(j+1) + '.tif'
+                name_post = ID + '_L_' + 'NDVI' + '_wet' + str(j+1) + '_' + str(postw[0][1]) + '.tif'
                 exp_post.rio.to_raster(folder_name + '/' + name_post)
 
 
@@ -140,13 +140,13 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
                 pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(pred[0][1], pred[0][0], 1))) & (t <= pd.to_datetime(date(pred[1][1], pred[1][0], 1)))]).max(dim='time')
                 exp_pre = xr.where(pre >= 0.5, 1, 0)
                 exp_pre = exp_pre.where(xru.logical_not(xru.isnan(pre)), np.nan)
-                name_pre = ID + '_L_' + 'NDVI' + '_' + str(pred[0][1]) + '_dry' + '.tif'
+                name_pre = ID + '_L_' + 'NDVI' + '_dry_' + str(pred[0][1]) + '.tif'
                 exp_pre.rio.to_raster(folder_name + '/' + name_pre)
 
                 post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postd[0][1], postd[0][0], 1))) & (t <= pd.to_datetime(date(postd[1][1], postd[1][0], 1)))]).max(dim='time')
                 exp_post = xr.where(post >= 0.5, 1, 0)
                 exp_post = exp_post.where(xru.logical_not(xru.isnan(post)), np.nan)
-                name_post = ID + '_L_' + 'NDVI' + '_' + str(postd[1][1]) + '_dry' + '.tif'
+                name_post = ID + '_L_' + 'NDVI' + '_dry_' + str(postd[0][1]) +  '.tif'
                 exp_post.rio.to_raster(folder_name + '/' + name_post)
 
 

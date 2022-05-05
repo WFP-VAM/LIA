@@ -189,7 +189,7 @@ def run(da_chirps, shapefiles: list, wet_season: list, dry_season: list, enso: p
             dates_csv.append(str(d[0][1]) + '-' + str(d[0][0]) + '/' + str(d[1][1]) + '-' + str(d[1][0]))
 
         # Create csv
-        with open(folder_name + '/' + ID + '_enso.csv', 'w', newline='', encoding='UTF8') as f:
+        with open(folder_name + '/' + ID + '_L_enso.csv', 'w', newline='', encoding='UTF8') as f:
             # create the csv writer
             writer = csv.writer(f, delimiter=';')
             # define zip to write columns
