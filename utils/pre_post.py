@@ -133,7 +133,7 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 
 
 		t = da_clipped.time.values
-		i = 1
+		j = 1
 
 		for prew, postw in zip(pre_wet, post_wet):
 
@@ -141,25 +141,29 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 			# Check data is missing to process the asset
 			if pd.to_datetime(date(postw[1][1], postw[1][0], 1)) > t[-1]:
 
-				unprocessed.append([ID, postw])
+				unprocessed.append([ID, 'No data post intervention', postw])
+				if j==0:
+					print('There is no wet season post intervention')
+				else:
+					print('There is no second wet season post intervention')
 
 			else:
 
 				pre = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(prew[0][1], prew[0][0], 1))) & (t <= pd.to_datetime(date(prew[1][1], prew[1][0], 1)))])
 				pre = unscaling(pre, product_type)
-				name = ID + '_L_' + product_type + '_wet' + str(i) + '_' + str(prew[0][1]) + '.tif'
+				name = ID + '_L_' + product_type + '_wet' + str(j) + '_' + str(prew[0][1]) + '.tif'
 				pre.rio.to_raster(folder_name + '/' + name)
 
 				post = da_clipped.sel(time = da_clipped.time[(t >= pd.to_datetime(date(postw[0][1], postw[0][0], 1))) & (t <= pd.to_datetime(date(postw[1][1], postw[1][0], 1)))])
 				post = unscaling(post, product_type)
-				name = ID + '_L_' + product_type + '_wet' + str(i) + '_' + str(postw[0][1]) + '.tif'
+				name = ID + '_L_' + product_type + '_wet' + str(j) + '_' + str(postw[0][1]) + '.tif'
 				post.rio.to_raster(folder_name + '/' + name)
 
 				diff = post - pre
-				name = ID + '_L_' + product_type + '_wet' + str(i) + '_' + str(prew[0][1]) + '_' + str(postw[0][1]) + '.tif'
+				name = ID + '_L_' + product_type + '_wet' + str(j) + '_' + str(prew[0][1]) + '_' + str(postw[0][1]) + '.tif'
 				diff.rio.to_raster(folder_name + '/' + name)
 
-			i += 1
+			j += 1
 		    
 		    
 		for pred, postd in zip(pre_dry, post_dry):
@@ -167,7 +171,8 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 			# Check data is missing to process the asset
 			if pd.to_datetime(date(postd[1][1], postd[1][0], 1)) > t[-1]:
 
-				unprocessed.append([ID, postd])
+				unprocessed.append([ID, 'No data post intervention', postd])
+				print('There is no dry season post intervention')
 
 			else:
 		    
@@ -185,6 +190,6 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 			    name = ID + '_L_' + product_type + '_dry' + '_' + str(pred[0][1]) + '_' + str(postd[0][1]) + '.tif'
 			    diff.rio.to_raster(folder_name + '/' + name)
 
-	unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'season'])
+	unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'issue', 'season'])
 	name = 'Unprocessed_' + product_type + '.csv'
 	unprocessed.to_csv(folder_name + '/' + name)
