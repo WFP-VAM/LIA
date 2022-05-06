@@ -71,10 +71,6 @@ def compute_tci_vci_vhi(LST, NDVI, season: tuple, alpha: float):
 
 	# Compute VHI
 	VHI = alpha*VCI + (1-alpha)*TCI
-    
-	print('----VCI-----\n',VCI)
-	print('----TCI-----\n',TCI)
-	print('----VHI-----\n',VHI)
 
 	return (VCI, TCI, VHI)
 
