@@ -1,12 +1,11 @@
 import argparse
 from tkinter import *
-
 from utils.helper_fns import *
-from utils import pre_post
-from utils import tci_vci_vhi
-from utils import rfh_ndvi
-from utils import expansion_ndvi
-from utils import enso
+import utils.pre_post as pre_post
+import utils.tci_vci_vhi as tci_vci_vhi
+import utils.rfh_ndvi as rfh_ndvi
+import utils.expansion_ndvi as expansion_ndvi
+import utils.enso as enso
 
 
 
@@ -68,11 +67,14 @@ def main(select: bool):
 	ENSO = pd.read_csv(path_to_enso, index_col = 0, header = 0, sep = ';', encoding='utf8')
 
 	# Rasters
-	NDVI = xr.open_zarr(path_to_zarr + 'NDVI.zarr').band
-	LST = xr.open_zarr(path_to_zarr + 'LST.zarr').band
-	CHIRPS = xr.open_zarr(path_to_zarr + 'CHIRPS.zarr').band
-
-
+	try:
+		NDVI = xr.open_zarr(path_to_zarr + 'NDVI.zarr').band
+		LST = xr.open_zarr(path_to_zarr + 'LST.zarr').band
+		CHIRPS = xr.open_zarr(path_to_zarr + 'CHIRPS.zarr').band
+	except:   
+		print('You first need to download the datasets by running LIA_download.py')
+		return None
+    
 	# Get Country information 
 	iso3 = os.path.basename(shapefiles[0])[:3]
 	c_info = country_info.loc[iso3]
