@@ -63,14 +63,18 @@ def compute_tci_vci_vhi(LST, NDVI, season: tuple, alpha: float):
 
 	# Compute VCI
 	NDVI_grp = group_by_season(NDVI, season)
-	VCI = (NDVI_grp.quantile(0.9, dim = 'time') - NDVI_grp) / (NDVI_grp.quantile(0.9, dim = 'time') - NDVI_grp.quantile(0.1, dim = 'time')) 
+	VCI = (NDVI_grp.quantile(1, dim = 'time') - NDVI_grp) / (NDVI_grp.quantile(1, dim = 'time') - NDVI_grp.quantile(0, dim = 'time')) 
 
 	# Compute TCI
 	LST_grp = group_by_season(LST, season)
-	TCI = (LST_grp.quantile(0.9, dim = 'time') - LST_grp) / (LST_grp.quantile(0.9, dim = 'time') - LST_grp.quantile(0.1, dim = 'time')) 
+	TCI = (LST_grp.quantile(1, dim = 'time') - LST_grp) / (LST_grp.quantile(1, dim = 'time') - LST_grp.quantile(0, dim = 'time')) 
 
 	# Compute VHI
 	VHI = alpha*VCI + (1-alpha)*TCI
+    
+	print('----VCI-----\n',VCI)
+	print('----TCI-----\n',TCI)
+	print('----VHI-----\n',VHI)
 
 	return (VCI, TCI, VHI)
 
@@ -173,7 +177,7 @@ def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_i
 		gdf = gpd.read_file(shapefile)
 
 		# Check asset size        
-		if not check_asset_size(LST, gdf):
+		if (not check_asset_size(LST, gdf)) or (not check_asset_size(NDVI, gdf)):
 			print('The asset is too small to be processed')
 			unprocessed.append([ID, 'Asset too small', 'N/A'])
 			continue
@@ -193,6 +197,10 @@ def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_i
 		t = np.intersect1d(LST.time.values, NDVI.time.values)
 		NDVI_clipped = NDVI_clipped.sel(time = t)
 		LST_clipped = LST_clipped.sel(time = t)
+
+		# Unscale
+		NDVI_clipped = NDVI_clipped / 10000
+		LST_clipped = LST_clipped * 0.02 - 273.15
 
 		# Get intervention dates
 		start_intervention = asset_info.loc[ID].start
