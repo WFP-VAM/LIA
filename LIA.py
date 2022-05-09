@@ -79,6 +79,7 @@ def main(select: bool):
 	iso3 = os.path.basename(shapefiles[0])[:3]
 	c_info = country_info.loc[iso3]
 	(wet_season, dry_season) = get_wet_dry(c_info)
+	alpha = float(c_info['VCI_alpha'])
         
         
 
@@ -94,7 +95,7 @@ def main(select: bool):
 		pre_post.run(LST, shapefiles, wet_season, dry_season, asset_info, path_output, 'LST')
 	if run[3] == 1:
 		print('\n' + ' ## TCI/VCI/VHI pre/post implementation ##')
-		tci_vci_vhi.run(LST, NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
+		tci_vci_vhi.run(LST, NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, alpha)
 	if run[4] == 1:
 		print('\n' + '## Rainfall & max NDVI ##')
 		rfh_ndvi.run(CHIRPS, NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
