@@ -63,11 +63,15 @@ def compute_tci_vci_vhi(LST, NDVI, season: tuple, alpha: float):
 
 	# Compute VCI
 	NDVI_grp = group_by_season(NDVI, season)
-	VCI = (NDVI_grp.quantile(1, dim = 'time') - NDVI_grp) / (NDVI_grp.quantile(1, dim = 'time') - NDVI_grp.quantile(0, dim = 'time')) 
+	VCI = (NDVI_grp.quantile(0.9, dim = 'time') - NDVI_grp) / (NDVI_grp.quantile(0.9, dim = 'time') - NDVI_grp.quantile(0.1, dim = 'time')) 
+	VCI = VCI.where(VCI > 0, 0) 
+	VCI = VCI.where(VCI < 1, 1)
 
 	# Compute TCI
 	LST_grp = group_by_season(LST, season)
-	TCI = (LST_grp.quantile(1, dim = 'time') - LST_grp) / (LST_grp.quantile(1, dim = 'time') - LST_grp.quantile(0, dim = 'time')) 
+	TCI = (LST_grp.quantile(0.9, dim = 'time') - LST_grp) / (LST_grp.quantile(0.9, dim = 'time') - LST_grp.quantile(0.1, dim = 'time')) 
+	TCI = TCI.where(TCI > 0, 0) 
+	TCI = TCI.where(TCI < 1, 1)
 
 	# Compute VHI
 	VHI = alpha*VCI + (1-alpha)*TCI
@@ -154,7 +158,7 @@ def save_rasters_dry(da, pred: list, postd: list, folder_name: str, pdct: str, I
 
 
 
-def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):
+def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str, alpha: float):
 
 	# Create output folder
 	folder_name = path_output+ '/prepost/TCI_VCI_VHI'
@@ -206,7 +210,6 @@ def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_i
 		(pre_wet, post_wet, pre_dry, post_dry) = get_pre_post_dates(start_intervention, end_intervention, wet_season, dry_season)
 
 		#  COMPUTATION
-		alpha = 0.5
 		i = 0
 		for prew, postw, ws in zip(pre_wet, post_wet, wet_season):
 

@@ -75,9 +75,6 @@ def main(check_dates:bool, select: bool):
 
 	else:
 
-		delete_directory(path_zarr)
-		pathlib.Path(path_zarr).mkdir(parents=True, exist_ok=True)
-
 		print('\n---------------------------------------------\n')
 
 		# NDVI
