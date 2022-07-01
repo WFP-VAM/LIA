@@ -44,6 +44,15 @@ def string_to_date2(x):
 
     return (datetime.datetime.strptime(mon, '%b').month, int(year))
 
+def date_to_string(dt):
+
+    if (dt.day == 10):
+        return (str(dt.year) + str(dt.month) + 'd1')
+    elif (dt.day == 20):
+        return (str(dt.year) + str(dt.month) + 'd2')
+    else:
+        return (str(dt.year) + str(dt.month) + 'd3')
+
 
 
 def read_asset_csv(path_to_csv):
