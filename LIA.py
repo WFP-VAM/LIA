@@ -53,7 +53,7 @@ def main(select: bool):
 	path_to_country_info = 'data/Dataframes/country_info.csv'
 	path_to_enso = 'data/Dataframes/ENSO.csv'
 	path_to_zarr = 'data/Rasters/zarr_data/'
-	path_output = 'outputs'
+	path_output = 'outputs/LIA/'
 
 
 	# DOWNLOAD DATA
