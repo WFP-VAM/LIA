@@ -113,12 +113,14 @@ def read_ODC(url: str):
     return da
 
 
-def ODC_to_disk(url: str, output_name: str):
+def ODC_to_disk(url: str, output_name: str, path_adm00: str):
 
     fs = s3fs.S3FileSystem(anon=True, client_kwargs={'region_name': 'eu-central-1'})
     
     da = xr.open_zarr(s3fs.S3Map(url, s3=fs))
     da = da.assign_coords(time = pd.to_datetime([string_to_date(x) for x in da.time.values]))
+
+    da = crop_country(da, url, path_adm00)
     
     da.to_zarr(output_name, mode = 'w')
     
@@ -136,3 +138,39 @@ def check_asset_size(da, gdf):
         sufficient = False
     
     return sufficient
+
+
+def get_iso3(x):
+
+    c = re.search(r'LIA/...', x).group()
+    iso3 = c[-3:]
+
+    return iso3
+
+
+def crop_country(da, url, path_adm00):
+
+    daC = da.copy()
+
+    daC = daC.load()
+
+    iso3 = get_iso3(url)
+
+    adm0 = gpd.read_file(path_adm00)
+    adm0.set_index('iso3', inplace = True)
+
+    if iso3 not in adm0.index:
+        print('ERROR in iso3 country in URL')
+        sys.exit()
+
+    if adm0.loc[iso3]['geometry'].geom_type == 'MultiPolygon':
+        daC = daC.rio.clip(adm0.loc[iso3]['geometry'])
+    elif adm0.loc[iso3]['geometry'].geom_type == 'Polygon':
+        daC = daC.rio.clip([adm0.loc[iso3]['geometry']])
+    else:
+        print('ERROR in Country Shapefile')
+        sys.exit()
+
+    return daC
+
+
