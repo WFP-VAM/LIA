@@ -41,6 +41,7 @@ def main(check_dates:bool, select: bool):
 	# Set paths
 	path_to_ODC_url = 'data/Rasters/ODC_url.csv'
 	path_zarr = 'data/Rasters/zarr_data/'
+	path_adm00 = 'data/ADM00/ADM00.shp'
 
 	# Rasters
 	ODC_url = pd.read_csv(path_to_ODC_url, index_col = 0, header = None)
@@ -81,19 +82,19 @@ def main(check_dates:bool, select: bool):
 		if run[0] == 1:
 			print('   --- Downloading NDVI Data ---')
 			name = path_zarr + 'NDVI.zarr'
-			ODC_to_disk(ODC_url.loc['NDVI']['url'], name)
+			ODC_to_disk(ODC_url.loc['NDVI']['url'], name, path_adm00)
 
 		# LST
 		if run[1] == 1:
 			print('   --- Downloading LST Data ---')
 			name = path_zarr + 'LST.zarr'
-			ODC_to_disk(ODC_url.loc['LST']['url'], name)
+			ODC_to_disk(ODC_url.loc['LST']['url'], name, path_adm00)
 
 		# CHIRPS
 		if run[2] == 1:
 			print('   --- Downloading CHIRPS Data ---')
 			name = path_zarr + 'CHIRPS.zarr'
-			ODC_to_disk(ODC_url.loc['CHIRPS']['url'], name)
+			ODC_to_disk(ODC_url.loc['CHIRPS']['url'], name, path_adm00)
 
 		print('\n---------------------------------------------')
 
