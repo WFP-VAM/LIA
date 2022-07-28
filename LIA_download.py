@@ -1,16 +1,16 @@
+#import zarr
+#import s3fs
+#import pathlib
 import argparse
-import pandas as pd
-import pathlib
-import s3fs
+#import xarray as xr
+#import pandas as pd
 from tkinter import *
-import xarray as xr
-import zarr
 
-from utils.helper_fns import delete_directory, ODC_to_disk, read_ODC
-
+from utils_download import modis_dl as md
+from utils_download import landsat_sentinel_dl as lsd
 
 
-def main(check_dates:bool, select: bool):
+def main(check_dates: bool, select: bool, satellite: bool):
 
 	# Checkbox
 	if select:
@@ -38,65 +38,42 @@ def main(check_dates:bool, select: bool):
 
 		run = [1, 1, 1]
 
-	# Set paths
-	path_to_ODC_url = 'data/Rasters/ODC_url.csv'
-	path_zarr = 'data/Rasters/zarr_data/'
-	path_adm00 = 'data/ADM00/ADM00.shp'
 
-	# Rasters
-	ODC_url = pd.read_csv(path_to_ODC_url, index_col = 0, header = None)
-	ODC_url.rename(columns = {1: 'url'}, inplace = True) 
-    
-    # Check dates of the datasets if --check_dates
-	if check_dates:
+	if satellite:
 
-		print('   --- Check dates of the datasets ---\n')
+		a = Tk()
+		a.title('Select')
 
-		# print NDVI dates
-		NDVI = read_ODC(ODC_url.loc['NDVI']['url'])
-		start_date = str(pd.to_datetime(NDVI.time[0].values).date())
-		end_date = str(pd.to_datetime(NDVI.time[-1].values).date())
-		print('NDVI dates range: ' + start_date + '...' + end_date)
+		positionRight = int(a.winfo_screenwidth()/2 - a.winfo_reqwidth()/2)
+		positionDown = int(a.winfo_screenheight()/2 - a.winfo_reqheight()/2)
+		a.geometry("+{}+{}".format(positionRight, positionDown))
 
-		# print LST dates
-		LST = read_ODC(ODC_url.loc['LST']['url'])
-		start_date = str(pd.to_datetime(LST.time[0].values).date())
-		end_date = str(pd.to_datetime(LST.time[-1].values).date())
-		print('LST dates range: ' + start_date + '...' + end_date)
+		var1 = IntVar()
+		Checkbutton(a, text = "MODIS", variable = var1).grid(row = 0, sticky = W)
+		var2 = IntVar()
+		Checkbutton(a, text = "LANDSAT/SENTINEL", variable = var2).grid(row = 1, sticky = W)
 
-		# print CHIRPS data
-		CHIRPS = read_ODC(ODC_url.loc['CHIRPS']['url'])
-		start_date = str(pd.to_datetime(CHIRPS.time[0].values).date())
-		end_date = str(pd.to_datetime(CHIRPS.time[-1].values).date())
-		print('CHIRPS dates range: ' + start_date + '...' + end_date)
+		Button(a, text = 'Download', command = a.destroy).grid(row = 2)
+		a.mainloop()
 
-		print('\n---------------------------------------------')
-
-
+		sat = [var1.get(), var2.get()]
 
 	else:
 
-		print('\n---------------------------------------------\n')
+		sat = [0,1]
 
-		# NDVI
-		if run[0] == 1:
-			print('   --- Downloading NDVI Data ---')
-			name = path_zarr + 'NDVI.zarr'
-			ODC_to_disk(ODC_url.loc['NDVI']['url'], name, path_adm00)
 
-		# LST
-		if run[1] == 1:
-			print('   --- Downloading LST Data ---')
-			name = path_zarr + 'LST.zarr'
-			ODC_to_disk(ODC_url.loc['LST']['url'], name, path_adm00)
+	if sat[0]:
 
-		# CHIRPS
-		if run[2] == 1:
-			print('   --- Downloading CHIRPS Data ---')
-			name = path_zarr + 'CHIRPS.zarr'
-			ODC_to_disk(ODC_url.loc['CHIRPS']['url'], name, path_adm00)
+		md.modis_dl(check_dates, run)
 
-		print('\n---------------------------------------------')
+	if sat[1]:
+
+		lsd.landsat_sentinel_dl(check_dates)
+
+		if not sat[0]:
+
+			md.modis_dl(check_dates, [0, 0, run[2]])
 
 
 
@@ -110,8 +87,9 @@ if __name__ == '__main__':
 	# Flags
 	parser.add_argument('--check_dates', action='store_true', help='Check available dates for each dataset')
 	parser.add_argument('--select', action='store_true', help='Select datasets to download')
+	parser.add_argument('--satellite', action='store_true', help='Select satellite to download')
 
 	# Parse
 	args = parser.parse_args()
 
-	main(args.check_dates, args.select)
+	main(args.check_dates, args.select, args.satellite)
