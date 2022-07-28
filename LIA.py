@@ -6,6 +6,7 @@ import utils.tci_vci_vhi as tci_vci_vhi
 import utils.rfh_ndvi as rfh_ndvi
 import utils.expansion_ndvi as expansion_ndvi
 import utils.enso as enso
+import utils.anomalies as anomalies
 
 
 
@@ -35,15 +36,17 @@ def main(select: bool):
 		Checkbutton(a, text = "Expansion NDVI", variable = var6).grid(row = 5, sticky = W)
 		var7 = IntVar()
 		Checkbutton(a, text = "ENSO analysis", variable = var7).grid(row = 6, sticky = W)
-
-		Button(a, text = 'Run', command = a.destroy).grid(row = 7)
+		var8 = IntVar()
+		Checkbutton(a, text = "Anomalies", variable = var8).grid(row = 7, sticky = W)
+		
+		Button(a, text = 'Run', command = a.destroy).grid(row = 8)
 		a.mainloop()
 
-		run = [var1.get(), var2.get(), var3.get(), var4.get(), var5.get(), var6.get(), var7.get()]
+		run = [var1.get(), var2.get(), var3.get(), var4.get(), var5.get(), var6.get(), var7.get(), var8.get()]
 
 	else:
 
-		run = [1, 1, 1, 1, 1, 1, 1]
+		run = [1, 1, 1, 1, 1, 1, 1, 1]
 
 
 
@@ -105,7 +108,9 @@ def main(select: bool):
 	if run[6] == 1:
 		print('\n' + ' ## ENSO analysis ##')
 		enso.run(CHIRPS, shapefiles, wet_season, dry_season, ENSO, path_output, n_years=5)
-
+	if run[7] == 1:
+		print('\n' + ' ## NDVI/LST/Rainfall anomalies ##')
+		anomalies.run(CHIRPS, NDVI, LST, path_output)
 
 
 if __name__ == '__main__':
