@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 import xarray as xr
 import geopandas as gpd
+from datetime import date
 
 import seasmon_xr
 
@@ -112,7 +113,7 @@ def landsat_sentinel_dl(check_dates):
 		polygon = SDS_tools.smallest_rectangle(gdf_buf)
 
         # date range
-		dates = ['2002-01-01', '2022-06-01']
+		dates = ['2002-01-01', str(date.today())]
 
         # satellite missions
 		sat_list = ['L5','L7','L8','L9']
