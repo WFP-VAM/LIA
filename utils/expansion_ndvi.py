@@ -63,7 +63,7 @@ def date_to_str(x: tuple):
 
     return str(x[1]) + "{0:0=2d}".format(x[0])
 
-def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):
+def run(da, sat, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str):
 
     # Create output folder
     folder_name = path_output + '/' + 'NDVI_expansion'
@@ -77,6 +77,12 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
         # Get asset ID
         ID = os.path.basename(shapefile)[:-4]
         print('-- Processing asset ' + ID + ' (' + str(i + 1) + '/' + str(len(shapefiles)) + ') --')
+
+        if sat[1]:
+            path = 'data/Rasters/LANDSAT_SENTINEL/' + ID 
+            
+            da = xr.open_zarr(path + '/NDVI_smoothed_monthly.zarr')
+            da = da.band.rio.write_crs("epsg:32637", inplace=True) 
 
         # Reading asset
         gdf = gpd.read_file(shapefile)

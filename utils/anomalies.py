@@ -3,14 +3,18 @@
 import os
 import pathlib
 import numpy as np
+import pandas as pd
+import geopandas as gpd
 import matplotlib.pyplot as plt
-from utils.helper_fns import delete_directory
+from utils.helper_fns import delete_directory, check_asset_size
 
 import warnings
 warnings.filterwarnings("ignore")
 
-def run(da_chirps, da_ndvi, da_lst, path_output: str):
-
+def run(da_chirps, da_ndvi, da_lst, sat, shapefiles: list, asset_info: pd.DataFrame, path_output: str):
+    
+    print('-- Computing anomalies over the whole country --')
+    
     # Create output folder
     folder_name = path_output + '/' + 'Anomalies'
     delete_directory(folder_name)
@@ -34,9 +38,9 @@ def run(da_chirps, da_ndvi, da_lst, path_output: str):
     da_chirps_lta = da_chirps.groupby(da_chirps.time.dt.strftime("%m-%d")).mean()
 
     # Take the mean over the coutry
-    da_ndvi = da_ndvi.mean(dim=['latitude','longitude'])
-    da_lst = da_lst.mean(dim=['latitude','longitude'])
-    da_chirps = da_chirps.mean(dim=['latitude','longitude'])
+    da_ndvi_country = da_ndvi.mean(dim=['latitude','longitude'])
+    da_lst_country = da_lst.mean(dim=['latitude','longitude'])
+    da_chirps_country = da_chirps.mean(dim=['latitude','longitude'])
     
     da_ndvi_lta = da_ndvi_lta.mean(dim=['latitude','longitude'])
     da_lst_lta = da_lst_lta.mean(dim=['latitude','longitude'])
@@ -55,9 +59,9 @@ def run(da_chirps, da_ndvi, da_lst, path_output: str):
         x_lta = da_chirps_lta.sel(strftime = x.time.dt.strftime("%m-%d"))
         return 100*(x - x_lta)/x_lta
     
-    ndvi_anom = da_ndvi.groupby(da_ndvi.time.dt.strftime("%m-%d")).map(scale_ndvi)
-    lst_anom = da_lst.groupby(da_lst.time.dt.strftime("%m-%d")).map(scale_lst)
-    chirps_anom = da_chirps.groupby(da_chirps.time.dt.strftime("%m-%d")).map(scale_chirps)
+    ndvi_anom = da_ndvi_country.groupby(da_ndvi_country.time.dt.strftime("%m-%d")).map(scale_ndvi)
+    lst_anom = da_lst_country.groupby(da_lst_country.time.dt.strftime("%m-%d")).map(scale_lst)
+    chirps_anom = da_chirps_country.groupby(da_chirps_country.time.dt.strftime("%m-%d")).map(scale_chirps)
     
     # Plot the anomalies 
     # NDVI
@@ -118,4 +122,86 @@ def run(da_chirps, da_ndvi, da_lst, path_output: str):
     plt.savefig(folder_name + '/' + 'LST')
     
     
+    # NDVI at FFA against controle site
+  
+    unprocessed = []
+    
+    for i,shapefile in enumerate(shapefiles):
         
+        # Get asset ID
+        ID = os.path.basename(shapefile)[:-4]
+        print('--     Processing asset ' + ID + ' (' + str(i + 1) + '/' + str(len(shapefiles)) + ')     --')
+    
+        # Reading asset
+        gdf = gpd.read_file(shapefile)
+
+        # 0.2 degree buffer around asset
+        gdf_buf = gdf.buffer(0.1, cap_style = 3)
+        
+        # Check asset size  
+        if not check_asset_size(da_ndvi, gdf):
+            print('The asset is too small to be processed')
+            unprocessed.append([ID, 'Asset too small for NDVI'])
+            continue  
+        if not check_asset_size(da_chirps, gdf_buf):
+            print('The asset is too small to be processed')
+            unprocessed.append([ID, 'Asset too small for CHIRPS'])
+            continue 
+
+        # Non asset site 
+        gdf_buf_out = gdf_buf - gdf
+        
+        # Clip rasters
+        da_ndvi_clipped = da_ndvi.rio.clip(gdf.geometry.values, gdf.crs)
+        da_ndvi_out = da_ndvi.rio.clip(gdf_buf_out.geometry.values, gdf.crs) 
+        
+        # Get intervention dates
+        start_intervention = asset_info.loc[ID].start
+        end_intervention = asset_info.loc[ID].end
+
+        # Mean NDVI values (FFA and non FFA site)
+        t = da_ndvi_clipped.time
+        mean_ndvi_non = da_ndvi_out.mean(dim = ['longitude','latitude'])
+        mean_ndvi_ffa = da_ndvi_clipped.mean(dim = ['longitude','latitude'])
+        diff = mean_ndvi_ffa - mean_ndvi_non
+        
+        # Plot the difference in NDVI at the FFA and controle site
+        color = []
+        ndvi = diff.values
+        for i in range(len(ndvi)):
+            if ndvi[i]<0:
+                color.append('orange')
+            else:
+                color.append('green')
+        
+        start_ind = np.where(temp.index==start_intervention[1])[0][start_intervention[0]-1]
+        end_ind = np.where(temp.index==end_intervention[1])[0][end_intervention[0]-1]
+        
+        temp = diff.to_series()
+        temp = temp.set_axis(temp.index.year)
+
+        fig,ax = plt.subplots(1,1,figsize=(14,5))
+        ax = temp.plot.bar(color=color, width=0.98, alpha=0.6)
+        xticks = []
+        for i, t in enumerate(ax.get_xticklabels()):
+            if (i % 12) == 0:
+                xticks.append(i)
+        
+        ax.set_xticks(xticks)    
+        plt.grid()
+        ax.set_ylabel('NDVI (FFA - Controle Site)')
+        max_y = np.abs(temp).max() + 0.03
+        ax.set_ylim(-max_y,max_y)
+
+        ax.vlines(x = start_ind, ymin = -max_y, ymax = max_y, linestyles = 'dotted', color = 'red')
+        ax.annotate('start\nintervention', (start_ind-18,max_y-0.04), color='red')
+        ax.vlines(x = end_ind, ymin = -max_y, ymax = max_y, linestyles = 'dotted', color = 'red')
+        ax.annotate('end\nintervention', (end_ind+1,max_y-0.04), color='red')
+
+        plt.title('NDVI at FFA against Control Site')
+        plt.savefig(folder_name + '/' + ID + '_FFA_CS_diff.png')
+
+
+    unprocessed = pd.DataFrame(unprocessed, columns = ['asset', 'issue'])
+    name = 'Unprocessed.csv'
+    unprocessed.to_csv(folder_name + '/' + name)  

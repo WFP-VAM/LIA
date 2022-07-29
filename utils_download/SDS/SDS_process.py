@@ -7,23 +7,10 @@ import xarray as xr
 import pandas as pd
 from tqdm import tqdm
 from osgeo import gdal, osr
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-
-# image processing modules
-import skimage.filters as filters
-import skimage.measure as measure
-import skimage.morphology as morphology
 
 # other modules
-import pickle
-from pylab import ginput
-import matplotlib.cm as cm
 from datetime import date
 from datetime import datetime
-from matplotlib import gridspec
-import matplotlib.lines as mlines
-import matplotlib.patches as mpatches
 
 
 # Modules
@@ -105,7 +92,7 @@ def get_ndvi_lst(metadata, settings):
         #print('')
         print(satname,': \nSaving as tif files')
         
-         # loop through the images
+          # loop through the images
         for i in range(len(filenames)):
             print('\r%d%%' % (int(((i+1)/len(filenames))*100)), end='')
             #print('\r%s: Saving as tif files  %d%%' % (satname,int(((i+1)/len(filenames))*100)), end='')
@@ -222,27 +209,27 @@ def get_ndvi_lst(metadata, settings):
         # Save as a zarr file
         da.to_zarr(filepath_ndvi_zarr, mode='a')
          
-#        # Do the same for LST
-#        if satname in ['L5', 'L7', 'L8', 'L9']:
-#            print('\nSaving LST as Zarr')
-#            # filepath to store the LST zarr file
-#            filepath_lst_zarr = os.path.join(filepath_data, sitename, satname, 'LST_zarr')
-#            
-#            # Get list of NDVI .tif files
-#            files = glob.glob(filepath_lst + "/*.tif")
-#
-#            # Create Xarray dataset
-#            da = create_xarray(files)
-#
-#            # Convert Floats to Integers
-#            da['band'] = da.band.astype('int32')
-#            
-#            # Add epsg to the dataset
-#            da = da.assign_coords(spatial_ref = metadata[satname]['epsg'][0])
-#            da = da.assign_attrs(crs = 'epsg:'+str(metadata[satname]['epsg'][0]), grid_mapping = 'spatial_ref')
-#
-#            # Save as a zarr file
-#            da.to_zarr(filepath_lst_zarr, mode='a')
+        # Do the same for LST
+        if satname in ['L5', 'L7', 'L8', 'L9']:
+            print('\nSaving LST as Zarr')
+            # filepath to store the LST zarr file
+            filepath_lst_zarr = os.path.join(filepath_data, sitename, satname, 'LST_zarr')
+            
+            # Get list of NDVI .tif files
+            files = glob.glob(filepath_lst + "/*.tif")
+
+            # Create Xarray dataset
+            da = create_xarray(files)
+
+            # Convert Floats to Integers
+            da['band'] = da.band.astype('int32')
+            
+            # Add epsg to the dataset
+            da = da.assign_coords(spatial_ref = metadata[satname]['epsg'][0])
+            da = da.assign_attrs(crs = 'epsg:'+str(metadata[satname]['epsg'][0]), grid_mapping = 'spatial_ref')
+
+            # Save as a zarr file
+            da.to_zarr(filepath_lst_zarr, mode='a')
 
 
             

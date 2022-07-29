@@ -30,7 +30,12 @@ def run(da_chirps, da_ndvi, sat, shapefiles: list, wet_season: list, dry_season:
         # Get asset ID
 		ID = os.path.basename(shapefile)[:-4]
 		print('-- Processing asset ' + ID + ' (' + str(i + 1) + '/' + str(len(shapefiles)) + ') --')
-
+        
+		if sat[1]:
+			path = 'data/Rasters/LANDSAT_SENTINEL/' + ID 
+			da_ndvi = xr.open_zarr(path + '/NDVI_smoothed_monthly.zarr')
+			da_ndvi = da_ndvi.band.rio.write_crs("epsg:32637", inplace=True) 
+        
         # Reading asset
 		gdf = gpd.read_file(shapefile)
 
@@ -50,18 +55,11 @@ def run(da_chirps, da_ndvi, sat, shapefiles: list, wet_season: list, dry_season:
         # Non asset site 
 		gdf_buf_out = gdf_buf - gdf
 
-		if sat[1]:
-			da_ndvi = xr.open_zarr('data/Rasters/LANDSAT_SENTINEL/'+ID+'NDVI_zarr')
 
         # Clip rasters
 		da_chirps_clipped = da_chirps.rio.clip(gdf_buf.geometry.values, gdf_buf.crs)
 		da_ndvi_clipped = da_ndvi.rio.clip(gdf.geometry.values, gdf.crs)
 		da_ndvi_out = da_ndvi.rio.clip(gdf_buf_out.geometry.values, gdf.crs) 
-
-        # Load CHIRPS values
-		da_chirps_clipped.load()
-		da_ndvi_clipped.load()
-		da_ndvi_out.load()
         
         # Rescale values (chirps: sum over the month / ndvi: normalize)
 		da_chirps_clipped = da_chirps_clipped * 3
@@ -122,7 +120,7 @@ def run(da_chirps, da_ndvi, sat, shapefiles: list, wet_season: list, dry_season:
 		ax2.plot(range(1,13), max_ndvi_lta, 'o-', color = 'green', label = 'Maximum average NDVI')
 		ax2.set_ylabel('NDVI',fontsize=19)
 		ax2.tick_params(axis='both', labelsize=15)
-		ax2.set_ylim(min(max_ndvi)-0.1, max(max_ndvi)+0.1)        
+		ax2.set_ylim(min(max_ndvi_lta)-0.1, max(max_ndvi_lta)+0.1)        
 		fig.legend()
 		fig.suptitle('Regional Average Monthly Rainfall & NDVI', fontsize=24) 
 		plt.title(ID, fontsize=20) 

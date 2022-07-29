@@ -11,57 +11,83 @@ from utils_download.SDS import SDS_tools, SDS_download, SDS_process
 
 
 def stack_landsat(path, nodata = -3000):
+    
+    # stack NDVI 
+ 	l5 = xr.open_zarr(path+'/L5/NDVI_zarr')
+ 	l7 = xr.open_zarr(path+'/L7/NDVI_zarr')
+ 	l8 = xr.open_zarr(path+'/L8/NDVI_zarr')
+ 	l9 = xr.open_zarr(path+'/L9/NDVI_zarr')
+ 	
+ 	l5 = l5.chunk(dict(time=-1))
+ 	l7 = l7.chunk(dict(time=-1))
+ 	l8 = l8.chunk(dict(time=-1))
+ 	l9 = l9.chunk(dict(time=-1))
 
-	#l5 = xr.open_zarr(path+'/L5/NDVI_zarr')
-	l7 = xr.open_zarr(path+'/L7/NDVI_zarr')
-	l8 = xr.open_zarr(path+'/L8/NDVI_zarr')
-	l9 = xr.open_zarr(path+'/L9/NDVI_zarr')
+ 	pix_l5 = l5.groupby(l5.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+ 	pix_l7 = l7.groupby(l7.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+ 	pix_l8 = l8.groupby(l8.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+ 	pix_l9 = l9.groupby(l9.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+
+ 	lst = xr.concat([pix_l5, pix_l7, pix_l8, pix_l9], dim='satellite', join='outer')
+
+ 	lst = lst.mean(dim='satellite')
+ 	lst = lst.rename_dims({'strftime':'time'})
+ 	lst = lst.assign_coords(time=pd.to_datetime(lst.strftime.values)).drop('strftime') 
+
+ 	lst = lst.chunk(dict(time=-1))
+    
+ 	lst_wcv = lst.band.hdc.whit.whitswcv(nodata = nodata, p = 0.8)
+
+ 	lst_wcv = lst_wcv.chunk(dict(time=-1,latitude=256,longitude=256))
+ 	lst_wcv_month = lst_wcv.groupby(lst_wcv.time.dt.strftime("%Y-%m")).mean(dim='time')
+ 	lst_wcv_month = lst_wcv_month.assign_coords(time=pd.to_datetime(lst_wcv_month.strftime.values))
+ 	lst_wcv_month = lst_wcv_month.drop('strftime') 
+ 	t = lst_wcv_month.time.values
+ 	lst_wcv_month = lst_wcv_month.band.rio.write_crs("epsg:32637", inplace=True)        
+ 	lst_wcv_month['strftime'] = t
+ 	lst_wcv_month = lst_wcv_month.rename({'strftime': 'time'})
+ 	lst_wcv_month = lst_wcv_month.to_dataset()
+    
+ 	lst_wcv_month.to_zarr(path+'/NDVI_smoothed_monthly.zarr')
+    
+    # stack LST
+ 	l5 = xr.open_zarr(path+'/L5/LST_zarr')
+ 	l7 = xr.open_zarr(path+'/L7/LST_zarr')
+ 	l8 = xr.open_zarr(path+'/L8/LST_zarr')
+ 	l9 = xr.open_zarr(path+'/L9/LST_zarr')
 	
-		#l5 = l5.chunk(dict(time=-1))
-	l7 = l7.chunk(dict(time=-1))
-	l8 = l8.chunk(dict(time=-1))
-	l9 = l9.chunk(dict(time=-1))
+ 	l5 = l5.chunk(dict(time=-1))
+ 	l7 = l7.chunk(dict(time=-1))
+ 	l8 = l8.chunk(dict(time=-1))
+ 	l9 = l9.chunk(dict(time=-1))
 
-	#l5.load()
-	#	l7.load()
-	#	l8.load()
-	#	l9.load()
+ 	pix_l5 = l5.groupby(l5.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+ 	pix_l7 = l7.groupby(l7.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+ 	pix_l8 = l8.groupby(l8.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+ 	pix_l9 = l9.groupby(l9.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
 
-	#tmp_l5 = l5.rename('var5')
-	#tmp_l7 = l7.rename('var7')
-	#tmp_l8 = l8.rename('var8')
-	#tmp_l9 = l9.rename('var8')
+ 	lst = xr.concat([pix_l5, pix_l7, pix_l8, pix_l9], dim='satellite', join='outer')
 
-	#pix_l5 = tmp_l5.groupby(tmp_l5.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
-	pix_l7 = l7.groupby(l7.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
-	pix_l8 = l8.groupby(l8.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
-	pix_l9 = l9.groupby(l9.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
+ 	lst = lst.mean(dim='satellite')
+ 	lst = lst.rename_dims({'strftime':'time'})
+ 	lst = lst.assign_coords(time=pd.to_datetime(lst.strftime.values)).drop('strftime') 
 
-	lst = xr.concat([pix_l7, pix_l8, pix_l9], dim='satellite', join='outer')
+ 	lst = lst.chunk(dict(time=-1))
+    
+ 	lst_wcv = lst.band.hdc.whit.whitswcv(nodata = nodata, p = 0.8)
 
-	lst = lst.mean(dim='satellite')
-
-	lst = lst.rename_dims({'strftime':'time'})
-
-	lst = lst.assign_coords(time=pd.to_datetime(lst.strftime.values)).drop('strftime') 
-
-	print('avant load')
-	lst.load()
-
-	print('avant smoooth')
-	lst_gcv = lst.band.hdc.whit.whitsgcv(nodata = nodata, p = 0.8)
-
-	lst_gcv = lst_gcv.chunk(dict(time=-1,latitude=256,longitude=256))
-
-	lst_gcv_month = lst_gcv.groupby(lst_gcv.time.dt.strftime("%Y-%m")).mean(dim='time')
-
-	lst_gcv_month = lst_gcv_month.assign_coords(time=pd.to_datetime(lst_gcv_month.strftime.values))
-
-	lst_gcv_month = lst_gcv_month.drop('strftime') 
-
-	print('avant tozarr')
-	lst_gcv_month.to_zarr(path+'/NDVI_smoothed_monthly.zarr')
-
+ 	lst_wcv = lst_wcv.chunk(dict(time=-1,latitude=256,longitude=256))
+ 	lst_wcv_month = lst_wcv.groupby(lst_wcv.time.dt.strftime("%Y-%m")).mean(dim='time')
+ 	lst_wcv_month = lst_wcv_month.assign_coords(time=pd.to_datetime(lst_wcv_month.strftime.values))
+ 	lst_wcv_month = lst_wcv_month.drop('strftime') 
+ 	t = lst_wcv_month.time.values
+ 	lst_wcv_month = lst_wcv_month.band.rio.write_crs("epsg:32637", inplace=True)        
+ 	lst_wcv_month['strftime'] = t
+ 	lst_wcv_month = lst_wcv_month.rename({'strftime': 'time'})
+ 	lst_wcv_month = lst_wcv_month.to_dataset()
+    
+ 	lst_wcv_month.to_zarr(path+'/LST_smoothed_monthly.zarr')
+    
 
 def landsat_sentinel_dl(check_dates): 
 
@@ -108,15 +134,16 @@ def landsat_sentinel_dl(check_dates):
 			SDS_download.check_images_available(inputs)
 
 		else:
-#			metadata = SDS_download.get_metadata(inputs)
-##			metadata = SDS_download.retrieve_images(inputs)
-#			settings = { 
-#				# general parameters:
-#				'cloud_thresh': 0.5,        # threshold on maximum cloud cover
-#				'cloud_mask_issue': False,  # switch this parameter to True if pixels are masked (in black) on many images  
-#				# add the inputs defined previously
-#				'inputs': inputs
-#			}
+			metadata = SDS_download.get_metadata(inputs)
+#			metadata = SDS_download.retrieve_images(inputs)
+			settings = { 
+				# general parameters:
+				'cloud_thresh': 0.5,        # threshold on maximum cloud cover
+				'cloud_mask_issue': False,  # switch this parameter to True if pixels are masked (in black) on many images  
+				# add the inputs defined previously
+				'inputs': inputs
+			}
+                
 #			SDS_process.get_ndvi_lst(metadata, settings)
-			print('avant stack')
+            
 			stack_landsat(filepath+ID)

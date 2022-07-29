@@ -90,7 +90,7 @@ def unscaling(da, product_type: str):
 	return da
 
 
-def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str, product_type: str):
+def run(da, sat, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str, product_type: str):
 	'''Possible product_types: NDVI, maxNDVI or LST'''
 
 	# Create output folder
@@ -105,6 +105,15 @@ def run(da, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd
 		# Get asset ID
 		ID = os.path.basename(shapefile)[:-4]
 		print('-- Processing asset ' + ID + ' (' + str(i + 1) + '/' + str(len(shapefiles)) + ') --')
+
+		if sat[1]:
+			path = 'data/Rasters/LANDSAT_SENTINEL/' + ID 
+			if product_type == 'LST':
+				da = xr.open_zarr(path + '/LST_smoothed_monthly.zarr')
+				da = da.band.rio.write_crs("epsg:32637", inplace=True) 
+			else:
+				da = xr.open_zarr(path + '/NDVI_smoothed_monthly.zarr')
+				da = da.band.rio.write_crs("epsg:32637", inplace=True)     
 
 		# Reading asset
 		gdf = gpd.read_file(shapefile)

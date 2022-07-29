@@ -83,6 +83,7 @@ def main(select: bool, satellite: bool):
 	path_to_enso = 'data/Dataframes/ENSO.csv'
 	path_output = 'output/LIA/'
 	path_to_zarr = 'data/Rasters/MODIS/zarr_data/'
+	path_to_landsat = 'data/Rasters/LANDSAT_SENTINEL/'
 
 	# DOWNLOAD DATA
 
@@ -123,28 +124,28 @@ def main(select: bool, satellite: bool):
 	# PROCESSING
 	if run[0]:
 		print('\n' + ' ## NDVI pre/post implementation ##')
-		pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'NDVI')
+		pre_post.run(NDVI, sat, shapefiles, wet_season, dry_season, asset_info, path_output, 'NDVI')
 	if run[1]:
 		print('\n' + ' ## max NDVI pre/post implementation ##')
-		pre_post.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, 'maxNDVI')
+		pre_post.run(NDVI, sat, shapefiles, wet_season, dry_season, asset_info, path_output, 'maxNDVI')
 	if run[2]:
 		print('\n' + ' ## LST pre/post implementation ##')
-		pre_post.run(LST, shapefiles, wet_season, dry_season, asset_info, path_output, 'LST')
+		pre_post.run(LST, sat, shapefiles, wet_season, dry_season, asset_info, path_output, 'LST')
 	if run[3]:
 		print('\n' + ' ## TCI/VCI/VHI pre/post implementation ##')
-		tci_vci_vhi.run(LST, NDVI, shapefiles, wet_season, dry_season, asset_info, path_output, alpha)
+		tci_vci_vhi.run(LST, NDVI, sat, shapefiles, wet_season, dry_season, asset_info, path_output, alpha)
 	if run[4]:
 		print('\n' + '## Rainfall & max NDVI ##')
 		rfh_ndvi.run(CHIRPS, NDVI, sat, shapefiles, wet_season, dry_season, asset_info, path_output)
 	if run[5]:
 		print('\n' + ' ## Expansion NDVI ##')
-		expansion_ndvi.run(NDVI, shapefiles, wet_season, dry_season, asset_info, path_output)
+		expansion_ndvi.run(NDVI, sat, shapefiles, wet_season, dry_season, asset_info, path_output)
 	if run[6]:
 		print('\n' + ' ## ENSO analysis ##')
 		enso.run(CHIRPS, shapefiles, wet_season, dry_season, ENSO, path_output, n_years=5)
 	if run[7] == 1:
 		print('\n' + ' ## NDVI/LST/Rainfall anomalies ##')
-		anomalies.run(CHIRPS, NDVI, LST, path_output)
+		anomalies.run(CHIRPS, NDVI, LST, sat, shapefiles, asset_info, path_output)
 
 
 if __name__ == '__main__':

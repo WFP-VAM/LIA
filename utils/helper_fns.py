@@ -152,7 +152,7 @@ def crop_country(da, url, path_adm00):
 
     daC = da.copy()
 
-    daC = daC.load()
+    #daC = daC.load()
 
     iso3 = get_iso3(url)
 
@@ -172,5 +172,4 @@ def crop_country(da, url, path_adm00):
         sys.exit()
 
     return daC
-
 

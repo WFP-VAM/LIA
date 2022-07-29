@@ -158,7 +158,7 @@ def save_rasters_dry(da, pred: list, postd: list, folder_name: str, pdct: str, I
 
 
 
-def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str, alpha: float):
+def run(LST, NDVI, sat, shapefiles: list, wet_season: list, dry_season: list, asset_info: pd.DataFrame, path_output: str, alpha: float):
 
 	# Create output folder
 	folder_name = path_output+ '/prepost/TCI_VCI_VHI'
@@ -172,8 +172,16 @@ def run(LST, NDVI, shapefiles: list, wet_season: list, dry_season: list, asset_i
 		# Get asset ID
 		ID = os.path.basename(shapefile)[:-4]
 		print('-- Processing asset ' + ID + ' (' + str(i + 1) + '/' + str(len(shapefiles)) + ') --')
-
-		# Reading asset
+		
+		if sat[1]:
+			path = 'data/Rasters/LANDSAT_SENTINEL/' + ID 
+            
+			NDVI = xr.open_zarr(path + '/NDVI_smoothed_monthly.zarr')
+			NDVI = NDVI.band.rio.write_crs("epsg:32637", inplace=True) 
+			LST = xr.open_zarr(path + '/LST_smoothed_monthly.zarr')
+			LST = LST.band.rio.write_crs("epsg:32637", inplace=True)             
+		
+        # Reading asset
 		gdf = gpd.read_file(shapefile)
 
 		# Check asset size        
