@@ -66,7 +66,7 @@ def main(select: bool, satellite: bool):
 		var2 = IntVar()
 		Checkbutton(a, text = "LANDSAT/SENTINEL", variable = var2).grid(row = 1, sticky = W)
 
-		Button(a, text = 'Download', command = a.destroy).grid(row = 2)
+		Button(a, text = 'Run', command = a.destroy).grid(row = 2)
 		a.mainloop()
 
 		sat = [var1.get(), var2.get()]
