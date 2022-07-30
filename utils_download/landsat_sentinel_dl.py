@@ -46,7 +46,7 @@ def stack_landsat(path, nodata = -3000):
  	lst_wcv_month = lst_wcv_month.assign_coords(time=pd.to_datetime(lst_wcv_month.strftime.values))
  	lst_wcv_month = lst_wcv_month.drop('strftime') 
  	t = lst_wcv_month.time.values
- 	lst_wcv_month = lst_wcv_month.band#.rio.write_crs(crs, inplace=True)        
+ 	lst_wcv_month = lst_wcv_month.band     
  	lst_wcv_month['strftime'] = t
  	lst_wcv_month = lst_wcv_month.rename({'strftime': 'time'})
  	lst_wcv_month = lst_wcv_month.to_dataset()
@@ -87,7 +87,7 @@ def stack_landsat(path, nodata = -3000):
  	lst_wcv_month = lst_wcv_month.assign_coords(time=pd.to_datetime(lst_wcv_month.strftime.values))
  	lst_wcv_month = lst_wcv_month.drop('strftime') 
  	t = lst_wcv_month.time.values
- 	lst_wcv_month = lst_wcv_month.band#.rio.write_crs("epsg:32637", inplace=True)        
+ 	lst_wcv_month = lst_wcv_month.band        
  	lst_wcv_month['strftime'] = t
  	lst_wcv_month = lst_wcv_month.rename({'strftime': 'time'})
  	lst_wcv_month = lst_wcv_month.to_dataset()
