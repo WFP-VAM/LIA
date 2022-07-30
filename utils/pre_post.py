@@ -110,10 +110,10 @@ def run(da, sat, shapefiles: list, wet_season: list, dry_season: list, asset_inf
 			path = 'data/Rasters/LANDSAT_SENTINEL/' + ID 
 			if product_type == 'LST':
 				da = xr.open_zarr(path + '/LST_smoothed_monthly.zarr')
-				da = da.band.rio.write_crs("epsg:32637", inplace=True) 
+				da = da.band.rio.write_crs("epsg:"+str(da.spatial_ref.values), inplace=True) 
 			else:
 				da = xr.open_zarr(path + '/NDVI_smoothed_monthly.zarr')
-				da = da.band.rio.write_crs("epsg:32637", inplace=True)     
+				da = da.band.rio.write_crs("epsg:"+str(da.spatial_ref.values), inplace=True)     
 
 		# Reading asset
 		gdf = gpd.read_file(shapefile)

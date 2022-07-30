@@ -23,7 +23,9 @@ def stack_landsat(path, nodata = -3000):
  	l7 = l7.chunk(dict(time=-1))
  	l8 = l8.chunk(dict(time=-1))
  	l9 = l9.chunk(dict(time=-1))
-
+    
+ 	crs = l9.crs
+    
  	pix_l5 = l5.groupby(l5.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
  	pix_l7 = l7.groupby(l7.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
  	pix_l8 = l8.groupby(l8.time.dt.strftime("%Y-%m-%d")).mean(dim='time')
@@ -44,18 +46,21 @@ def stack_landsat(path, nodata = -3000):
  	lst_wcv_month = lst_wcv_month.assign_coords(time=pd.to_datetime(lst_wcv_month.strftime.values))
  	lst_wcv_month = lst_wcv_month.drop('strftime') 
  	t = lst_wcv_month.time.values
- 	lst_wcv_month = lst_wcv_month.band.rio.write_crs("epsg:32637", inplace=True)        
+ 	lst_wcv_month = lst_wcv_month.band#.rio.write_crs(crs, inplace=True)        
  	lst_wcv_month['strftime'] = t
  	lst_wcv_month = lst_wcv_month.rename({'strftime': 'time'})
  	lst_wcv_month = lst_wcv_month.to_dataset()
-    
+ 	lst_wcv_month['band'] = lst_wcv_month.band.rio.write_crs(crs, inplace=True)
  	lst_wcv_month.to_zarr(path+'/NDVI_smoothed_monthly.zarr')
+    
     
     # stack LST
  	l5 = xr.open_zarr(path+'/L5/LST_zarr')
  	l7 = xr.open_zarr(path+'/L7/LST_zarr')
  	l8 = xr.open_zarr(path+'/L8/LST_zarr')
  	l9 = xr.open_zarr(path+'/L9/LST_zarr')
+     
+ 	crs = l9.crs
 	
  	l5 = l5.chunk(dict(time=-1))
  	l7 = l7.chunk(dict(time=-1))
@@ -82,11 +87,11 @@ def stack_landsat(path, nodata = -3000):
  	lst_wcv_month = lst_wcv_month.assign_coords(time=pd.to_datetime(lst_wcv_month.strftime.values))
  	lst_wcv_month = lst_wcv_month.drop('strftime') 
  	t = lst_wcv_month.time.values
- 	lst_wcv_month = lst_wcv_month.band.rio.write_crs("epsg:32637", inplace=True)        
+ 	lst_wcv_month = lst_wcv_month.band#.rio.write_crs("epsg:32637", inplace=True)        
  	lst_wcv_month['strftime'] = t
  	lst_wcv_month = lst_wcv_month.rename({'strftime': 'time'})
  	lst_wcv_month = lst_wcv_month.to_dataset()
-    
+ 	lst_wcv_month['band'] = lst_wcv_month.band.rio.write_crs(crs, inplace=True)
  	lst_wcv_month.to_zarr(path+'/LST_smoothed_monthly.zarr')
     
 

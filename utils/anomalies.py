@@ -156,9 +156,9 @@ def run(da_chirps, da_ndvi, da_lst, sat, shapefiles: list, asset_info: pd.DataFr
             path = 'data/Rasters/LANDSAT_SENTINEL/' + ID 
             
             da_ndvi = xr.open_zarr(path + '/NDVI_smoothed_monthly.zarr')
-            da_ndvi = da_ndvi.band.rio.write_crs("epsg:32637", inplace=True) 
+            da_ndvi = da_ndvi.band.rio.write_crs("epsg:"+str(da_ndvi.spatial_ref.values), inplace=True) 
             da_lst = xr.open_zarr(path + '/LST_smoothed_monthly.zarr')
-            da_lst = da_lst.band.rio.write_crs("epsg:32637", inplace=True)
+            da_lst = da_lst.band.rio.write_crs("epsg:"+str(da_lst.spatial_ref.values), inplace=True)
     
         # Reading asset
         gdf = gpd.read_file(shapefile)
